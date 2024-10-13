@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 
-class Perlin():
+class Perlin:
 
     def __init__(self, size=256):
         self.size = size
