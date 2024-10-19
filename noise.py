@@ -1,4 +1,5 @@
 import numpy as np
+import cmath
 
 k = ('0x456789ab', '0x6789ab45', '0x89ab4567')
 k = np.array([int(v, 0) for v in k], dtype=np.uint)
@@ -15,6 +16,13 @@ class Noise:
 
     def __init__(self):
         self.hash = {}
+
+    def uhash11(self, n):
+        n ^= n << u[0]
+        n ^= n >> u[0]
+        n *= k[0]
+        n ^= n << u[0]
+        return n * k[0]
 
     def uhash22(self, n):
         n ^= n[::-1] << u[:2]
@@ -66,3 +74,27 @@ class Noise:
 
     def mix(self, x, y, a):
         return x + (y - x) * a
+
+    def xy2pol(self, x, y):
+        r = (x ** 2 + y ** 2) ** 0.5
+
+        if x == 0:
+            x = np.sign(y) * np.pi / 2
+        else:
+            x = np.arctan2(y, x)
+
+        return x, r
+
+        
+
+        # # p = np.arctan2(y, x)
+        # r, p = cmath.polar(complex(x, y)) 
+        # return p, y
+        # cmath.polar(complex(x, y)); r, p
+
+    # def pol2xy(self, r, p):
+    #     x = r * np.cos(p)
+    #     y = r * np.sin(p)
+    #     return x, y
+    #     # z = r * cmath.exp(1j * p)
+    #     # return z.real, z.imag

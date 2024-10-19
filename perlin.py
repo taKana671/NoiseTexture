@@ -6,7 +6,7 @@ import numpy as np
 from noise import Noise
 
 
-class Perlin:
+class Perlin(Noise):
 
     def __init__(self, grid=4, size=256):
         super().__init__()
@@ -130,11 +130,5 @@ def create_img_16bit(path, grid=4, size=256):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     # create_img_8bit('perlin_sample04.png')
     create_img_16bit('perlin_sample01.png')
-=======
-    perlin = Perlin(size=257)
-    arr = perlin.create_noise(4)
-    create_8_bit_img(arr, 'noise_sample.png')
->>>>>>> 63c59a3cddc55c7152b87ff82013e3e6f99edfca
