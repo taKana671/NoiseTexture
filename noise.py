@@ -1,5 +1,7 @@
-import numpy as np
 import cmath
+import random
+
+import numpy as np
 
 k = ('0x456789ab', '0x6789ab45', '0x89ab4567')
 k = np.array([int(v, 0) for v in k], dtype=np.uint)
@@ -50,6 +52,18 @@ class Noise:
         # n ^= n[[1, 2, 0]] << u
         # return n * k
 
+    def hash21(self, p):
+        n = p.astype(np.uint)
+
+        if (key := tuple(n)) in self.hash:
+            h = self.hash[key]
+        else:
+            h = self.uhash22(n)[0]
+            self.hash[key] = h
+
+        return h / UINT_MAX
+        # return self.uhash22(n)[0] / UINT_MAX
+
     def hash22(self, p):
         n = p.astype(np.uint)
 
@@ -75,6 +89,18 @@ class Noise:
     def mix(self, x, y, a):
         return x + (y - x) * a
 
+    def step(self, a, x):
+        if x <= a:
+            return 0
+        return 1
+
+    def smoothstep(self, edge0, edge1, x):
+        """Args:
+            edge0, edge1, x (float)
+        """
+        t = np.clip((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t)
+
     def xy2pol(self, x, y):
         r = (x ** 2 + y ** 2) ** 0.5
 
@@ -84,6 +110,35 @@ class Noise:
             x = np.arctan2(y, x)
 
         return x, r
+
+    def convert(self, v, n):
+        return (np.floor(n * v) + self.step(0.5, np.modf(n * v)[0])) / n
+
+    def wrap(self, t=None, rot=False):
+        if t is None:
+            t = random.uniform(0, 1000)
+
+        self.hash = {}
+
+        arr = np.array(
+            [self.wrap2(x + t, y + t, rot) for y in np.linspace(0, self.grid, self.size)
+                for x in np.linspace(0, self.grid, self.size)]
+        )
+        arr = arr.reshape(self.size, self.size)
+        return arr
+
+    def convert_gradation(self, t=None, rot=False):
+        if t is None:
+            t = random.uniform(0, 1000)
+
+        self.hash = {}
+
+        arr = np.array(
+            [self.convert(self.wrap2(x + t, y + t, rot), t) for y in np.linspace(0, self.grid, self.size)
+                for x in np.linspace(0, self.grid, self.size)]
+        )
+        arr = arr.reshape(self.size, self.size)
+        return arr
 
         
 

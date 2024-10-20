@@ -1,5 +1,5 @@
 import random
-
+import math
 import cv2
 import numpy as np
 
@@ -24,7 +24,7 @@ class FractionalBrownianMotion(Noise):
         w1 = self.mix(v[2], v[3], f[0])
         return self.mix(w0, w1, f[1])
 
-    def fbm2(self, x, y, t):
+    def fbm2(self, x, y):
         p = np.array([x, y])
         v = 0.0
         amp = 1.0
@@ -44,17 +44,28 @@ class FractionalBrownianMotion(Noise):
         self.hash = {}
 
         arr = np.array(
-            [self.fbm2(x + t, y + t, t) for y in np.linspace(0, self.grid, self.size)
+            [self.fbm2(x + t, y + t) for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
         return arr
 
+    def wrap2(self, x, y, rot=False):
+        v = 0.0
+
+        for i in range(4):
+            xm = np.cos(2 * np.pi * v) if rot else v
+            ym = np.sin(2 * np.pi * v) if rot else v
+            v = self.fbm2(x + self.g * xm, y + self.g * ym)
+
+        return v
 
 # np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
 def create_img_8bit(path, grid=4, size=256):
     fbm = FractionalBrownianMotion(grid, size)
-    arr = fbm.noise2()
+    # arr = fbm.noise2()
+    # arr = fbm.wrap(rot=True)
+    arr = fbm.convert_gradation(rot=True)
 
     arr *= 255
     arr = arr.astype(np.uint8)
@@ -71,5 +82,6 @@ def create_img_16bit(path, grid=4, size=256):
 
 
 if __name__ == '__main__':
-    create_img_8bit('fbm_sample02.png')
+    # create_img_8bit('fbm_sample02.png')
+    create_img_8bit('test2.png')
     # create_img_16bit('fbm_sample02.png')

@@ -106,11 +106,22 @@ class Perlin(Noise):
         arr = arr.reshape(self.size, self.size)
         return arr
 
+    def wrap2(self, x, y, rot=False):
+        v = 0.0
+
+        for i in range(4):
+            xm = np.cos(2 * np.pi * v) if rot else v
+            ym = np.sin(2 * np.pi * v) if rot else v
+            v = self.pnoise2(x + 0.5 * xm, y + 0.5 * ym)
+
+        return v
+
 
 # np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
 def create_img_8bit(path, grid=4, size=256):
     perlin = Perlin(grid, size)
-    arr = perlin.noise3()
+    # arr = perlin.noise3()
+    arr = perlin.wrap(rot=True)
     # arr = perlin.noise2()
 
     # arr = np.abs(arr)
@@ -121,7 +132,8 @@ def create_img_8bit(path, grid=4, size=256):
 
 def create_img_16bit(path, grid=4, size=256):
     perlin = Perlin(grid, size)
-    arr = perlin.noise3()
+    # arr = perlin.noise3()
+    arr = perlin.wrap(rot=True)
 
     # img = np.abs(arr)
     arr *= 65535
@@ -131,4 +143,6 @@ def create_img_16bit(path, grid=4, size=256):
 
 if __name__ == '__main__':
     # create_img_8bit('perlin_sample04.png')
-    create_img_16bit('perlin_sample01.png')
+    # create_img_8bit('test.png')
+    # create_img_16bit('perlin_sample01.png')
+    create_img_16bit('test.png')
