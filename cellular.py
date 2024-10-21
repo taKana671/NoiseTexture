@@ -13,20 +13,55 @@ class Cellular(Noise):
         self.size = size
         self.grid = grid
 
-    def fdist2(self, x, y):
-        p = np.array([x, y])
+    def sort4(self, dist4, length):
+
+        if self.step(length, dist4[0]):
+            return np.array([length, *dist4[:3]])
+        if self.step(length, dist4[1]):
+            return np.array([dist4[0], length, *dist4[1:3]])
+        if self.step(length, dist4[2]):
+            return np.array([*dist4[:2], length, dist4[3]])
+        if self.step(length, dist4[3]):
+            return np.array([*dist4[:3], length])
+
+    def fdist24(self, p):
+        n = np.floor(p + 0.5)
+        arr = 1.5 - np.abs(p - n)
+        length = sum(v ** 2 for v in arr) ** 0.5
+        dist4 = np.full(4, length)
+
+
+        for j in (0, 1, -1, 2, -2):
+            if abs((y := n[1] + j) - p[1]) - 0.5 > dist4[3]:
+                continue
+
+            for i in range(-2, 3):
+                x = n[0] + i
+                grid = np.array([x, y])
+                jitter = self.hash22(grid) - 0.5
+                vec = grid + jitter - p
+                length = (vec[0] ** 2 + vec[1] ** 2) ** 0.5
+
+                if (sorted_dist4 := self.sort4(dist4, length)) is not None:
+                    dist4 = sorted_dist4
+
+        return dist4
+
+    def fdist2(self, p):
+        """Compute 2D nearest neighbor distance.
+            Args:
+                p (numpy.numpy.ndarray): the length is 2.
+        """
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
 
-        for j in range(3):
-            grid = np.zeros(2)
-            grid[1] = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
-
-            if abs((grid - p)[1]) - 0.5 > dist:
+        for j in (0, 1, -1):
+            if abs((y := n[1] + j) - p[1]) - 0.5 > dist:
                 continue
 
             for i in range(-1, 2):
-                grid[0] = n[0] + i
+                x = n[0] + i
+                grid = np.array([x, y])
                 jitter = self.hash22(grid) - 0.5
                 vec = grid + jitter - p
                 length = (vec[0] ** 2 + vec[1] ** 2) ** 0.5
@@ -34,67 +69,80 @@ class Cellular(Noise):
 
         return dist
 
-    def fdist3(self, x, y, t):
-        p = np.array([x, y, t])
+    def fdist3(self, p):
+        """Compute 3D nearest neighbor distance.
+            Args:
+                p (numpy.numpy.ndarray): the length is 3.
+        """
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
 
-        for k in range(3):
-            grid = np.zeros(3)
-            grid[2] = n[2] + np.sign(k % 2. - .5) * np.ceil(k * .5)
-
-            if abs((grid - p)[2]) - 0.5 > dist:
+        for k in (0, 1, -1):
+            if abs((z := n[2] + k) - p[2]) - 0.5 > dist:
                 continue
 
-            for j in range(3):
-                grid[1] = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
-
-                if abs((grid - p)[1]) - 0.5 > dist:
+            for j in (0, 1, -1):
+                if abs((y := n[1] + j) - p[1]) - 0.5 > dist:
                     continue
 
                 for i in range(-1, 2):
-                    grid[0] = n[0] + i
+                    x = n[0] + i
+                    grid = np.array([x, y, z])
                     jitter = self.hash33(grid) - 0.5
-                    v = grid + jitter - p
-                    length = (v[0] ** 2 + v[1] ** 2 + v[2] ** 2) ** 0.5
+                    vec = grid + jitter - p
+                    length = sum(v ** 2 for v in vec) ** 0.5
                     dist = min(dist, length)
 
         return dist
 
     def noise2(self, t=None):
-        if t is None:
-            t = random.uniform(0, 1000)
-
+        t = self.mock_time() if t is None else t
         self.hash = {}
 
         arr = np.array(
-            [self.fdist2(x + t, y + t) for y in np.linspace(0, self.grid, self.size)
+            [self.fdist2(np.array([x + t, y + t]))
+                for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
         return arr
 
     def noise3(self, t=None):
-        if t is None:
-            t = random.uniform(0, 1000)
-
+        t = self.mock_time() if t is None else t
         self.hash = {}
 
         arr = np.array(
-            [self.fdist3(x + t, y + t, t) for y in np.linspace(0, self.grid, self.size)
+            [self.fdist3(np.array([x + t, y + t, t]))
+                for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
         return arr
 
+    def noise4(self, t=None):
+        t = self.mock_time() if t is None else t
+        self.hash = {}
 
-def create_img_8bit(path, grid=4, size=256):
+        arr = np.array(
+            [self.fdist24(np.array([x + t, y + t]))[0]
+                for y in np.linspace(0, self.grid, self.size)
+                for x in np.linspace(0, self.grid, self.size)]
+        )
+        arr = arr.reshape(self.size, self.size)
+        # np.savetxt('sample.txt', arr)
+        return arr
+
+
+def create_img_8bit(path, grid=8, size=256):
     cellular = Cellular(grid, size)
     # arr = cellular.noise3()
-    arr = cellular.noise2()
+    # arr = cellular.noise2()
+    arr = cellular.noise4()
 
-    arr *= 255
-    arr = arr.astype(np.uint8)
+    # arr *= 255
+    arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
+    # arr = arr.astype(np.uint8)
+    # np.savetxt('sample_arr.txt', arr)
     cv2.imwrite(path, arr)
 
 

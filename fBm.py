@@ -63,6 +63,7 @@ class FractionalBrownianMotion(Noise):
 # np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
 def create_img_8bit(path, grid=4, size=256):
     fbm = FractionalBrownianMotion(grid, size)
+    # fbm.g = 4.0
     # arr = fbm.noise2()
     # arr = fbm.wrap(rot=True)
     arr = fbm.convert_gradation(rot=True)

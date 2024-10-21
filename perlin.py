@@ -112,8 +112,8 @@ class Perlin(Noise):
         for i in range(4):
             xm = np.cos(2 * np.pi * v) if rot else v
             ym = np.sin(2 * np.pi * v) if rot else v
-            v = self.pnoise2(x + 0.5 * xm, y + 0.5 * ym)
-
+            v = self.pnoise2(x + 4 * xm, y + 4.0 * ym)  
+            # v = self.pnoise2(x + g * xm, y + g * ym) gをインスタンス変数にするか、メソッドパラメータにするか要検討 
         return v
 
 
@@ -121,7 +121,8 @@ class Perlin(Noise):
 def create_img_8bit(path, grid=4, size=256):
     perlin = Perlin(grid, size)
     # arr = perlin.noise3()
-    arr = perlin.wrap(rot=True)
+    arr = perlin.wrap(rot=False)
+    # arr = perlin.convert_gradation(rot=True)
     # arr = perlin.noise2()
 
     # arr = np.abs(arr)
@@ -143,6 +144,6 @@ def create_img_16bit(path, grid=4, size=256):
 
 if __name__ == '__main__':
     # create_img_8bit('perlin_sample04.png')
-    # create_img_8bit('test.png')
+    create_img_8bit('test.png')
     # create_img_16bit('perlin_sample01.png')
-    create_img_16bit('test.png')
+    # create_img_16bit('test.png')
