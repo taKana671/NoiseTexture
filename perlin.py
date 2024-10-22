@@ -1,5 +1,3 @@
-import random
-
 import cv2
 import numpy as np
 
@@ -8,53 +6,13 @@ from noise import Noise
 
 class Perlin(Noise):
 
-    def __init__(self, grid=4, size=256):
+    def __init__(self, weight=0.5, grid=4, size=256):
         super().__init__()
         self.size = size
         self.grid = grid
+        self.weight = weight
 
-    def gtable2(self, lattice, p):
-        lattice = lattice.astype(np.uint)
-
-        if (tup := tuple(lattice)) in self.hash:
-            idx = self.hash[tup]
-        else:
-            idx = random.randint(1, 6)
-            self.hash[tup] = idx
-
-        u = (p[0] if idx < 4 else p[1]) * 0.92387953   # 0.92387953 = cos(pi/8)
-        v = (p[1] if idx < 4 else p[0]) * 0.38268343   # 0.38268343 = sin(pi/8)
-
-        _u = u if idx & 1 == 0 else -u
-        _v = v if idx & 2 == 0 else -v
-
-        return _u + _v
-
-    def gtable3(self, lattice, p):
-        lattice = lattice.astype(np.uint)
-
-        if (tup := tuple(lattice)) in self.hash:
-            idx = self.hash[tup]
-        else:
-            idx = random.randint(0, 15)
-            self.hash[tup] = idx
-
-        u = p[0] if idx < 8 else p[1]
-
-        if idx < 4:
-            v = p[1]
-        elif idx == 12 or idx == 14:
-            v = p[0]
-        else:
-            v = p[2]
-
-        _u = u if idx & 1 == 0 else -u
-        _v = v if idx & 2 == 0 else -v
-
-        return _u + _v
-
-    def pnoise2(self, x, y):
-        p = np.array([x, y])
+    def pnoise2(self, p):
         n = np.floor(p)
         f, _ = np.modf(p)
 
@@ -66,8 +24,7 @@ class Perlin(Noise):
         w1 = self.mix(v[2], v[3], f[0])
         return 0.5 * self.mix(w0, w1, f[1]) + 0.5
 
-    def pnoise3(self, x, y, t):
-        p = np.array([x, y, t])
+    def pnoise3(self, p):
         n = np.floor(p)
         f, _ = np.modf(p)
 
@@ -81,26 +38,24 @@ class Perlin(Noise):
         return 0.5 * self.mix(w0, w1, f[2]) + 0.5
 
     def noise2(self, t=None):
-        if t is None:
-            t = random.uniform(0, 1000)
-
+        t = self.mock_time() if t is None else t
         self.hash = {}
 
         arr = np.array(
-            [self.pnoise2(x + t, y + t) for y in np.linspace(0, self.grid, self.size)
+            [self.pnoise2(np.array([x + t, y + t]))
+                for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
         return arr
 
     def noise3(self, t=None):
-        if t is None:
-            t = random.uniform(0, 1000)
-
+        t = self.mock_time() if t is None else t
         self.hash = {}
 
         arr = np.array(
-            [self.pnoise3(x + t, y + t, t) for y in np.linspace(0, self.grid, self.size)
+            [self.pnoise3(np.array([x + t, y + t, t]))
+                for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
@@ -110,18 +65,20 @@ class Perlin(Noise):
         v = 0.0
 
         for i in range(4):
-            xm = np.cos(2 * np.pi * v) if rot else v
-            ym = np.sin(2 * np.pi * v) if rot else v
-            v = self.pnoise2(x + 4 * xm, y + 4.0 * ym)  
-            # v = self.pnoise2(x + g * xm, y + g * ym) gをインスタンス変数にするか、メソッドパラメータにするか要検討 
+            cx = np.cos(2 * np.pi * v) if rot else v
+            sy = np.sin(2 * np.pi * v) if rot else v
+            _x = x + self.weight * cx
+            _y = y + self.weight * sy
+            v = self.pnoise2(np.array([_x, _y]))
+
         return v
 
 
 # np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
-def create_img_8bit(path, grid=4, size=256):
-    perlin = Perlin(grid, size)
+def create_img_8bit(path, weight=1, grid=8, size=256):
+    perlin = Perlin(weight, grid, size)
     # arr = perlin.noise3()
-    arr = perlin.wrap(rot=False)
+    arr = perlin.wrap(rot=True)
     # arr = perlin.convert_gradation(rot=True)
     # arr = perlin.noise2()
 
@@ -131,7 +88,7 @@ def create_img_8bit(path, grid=4, size=256):
     cv2.imwrite(path, arr)
 
 
-def create_img_16bit(path, grid=4, size=256):
+def create_img_16bit(path, grid=2, size=256):
     perlin = Perlin(grid, size)
     # arr = perlin.noise3()
     arr = perlin.wrap(rot=True)

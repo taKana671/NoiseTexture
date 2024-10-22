@@ -1,5 +1,3 @@
-import random
-import math
 import cv2
 import numpy as np
 
@@ -8,11 +6,10 @@ from noise import Noise
 
 class FractionalBrownianMotion(Noise):
 
-    def __init__(self, grid=4, size=256):
-        super().__init__()
+    def __init__(self, weight=0.5, grid=4, size=256):
         self.size = size
         self.grid = grid
-        self.g = 0.5
+        self.weight = weight
 
     def vnoise2(self, p):
         n = np.floor(p)
@@ -24,27 +21,25 @@ class FractionalBrownianMotion(Noise):
         w1 = self.mix(v[2], v[3], f[0])
         return self.mix(w0, w1, f[1])
 
-    def fbm2(self, x, y):
-        p = np.array([x, y])
+    def fbm2(self, p):
         v = 0.0
         amp = 1.0
         freq = 1.0
 
         for i in range(4):
             v += amp * (self.vnoise2(freq * p) - 0.5)
-            amp *= self.g
+            amp *= self.weight
             freq *= 2.011
 
         return 0.5 * v + 0.5
 
     def noise2(self, t=None):
-        if t is None:
-            t = random.uniform(0, 1000)
-
+        t = self.mock_time() if t is None else t
         self.hash = {}
 
         arr = np.array(
-            [self.fbm2(x + t, y + t) for y in np.linspace(0, self.grid, self.size)
+            [self.fbm2(np.array([x + t, y + t]))
+                for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
@@ -54,19 +49,22 @@ class FractionalBrownianMotion(Noise):
         v = 0.0
 
         for i in range(4):
-            xm = np.cos(2 * np.pi * v) if rot else v
-            ym = np.sin(2 * np.pi * v) if rot else v
-            v = self.fbm2(x + self.g * xm, y + self.g * ym)
+            cx = np.cos(2 * np.pi * v) if rot else v
+            sy = np.sin(2 * np.pi * v) if rot else v
+            x += self.weight * cx
+            y += self.weight * sy
+            v = self.fbm2(np.array([x, y]))
 
         return v
 
+
 # np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
-def create_img_8bit(path, grid=4, size=256):
-    fbm = FractionalBrownianMotion(grid, size)
+def create_img_8bit(path, weight=0.5, grid=4, size=256):
+    fbm = FractionalBrownianMotion(weight, grid, size)
     # fbm.g = 4.0
-    # arr = fbm.noise2()
-    # arr = fbm.wrap(rot=True)
-    arr = fbm.convert_gradation(rot=True)
+    arr = fbm.noise2()
+    # arr = fbm.wrap(rot=False)
+    # arr = fbm.convert_gradation(rot=True)
 
     arr *= 255
     arr = arr.astype(np.uint8)

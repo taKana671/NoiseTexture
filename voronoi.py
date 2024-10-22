@@ -9,7 +9,6 @@ from noise import Noise
 class Voronoi(Noise):
 
     def __init__(self, grid=4, size=256):
-        super().__init__()
         self.size = size
         self.grid = grid
 
@@ -26,9 +25,8 @@ class Voronoi(Noise):
                 x = n[0] + i
                 grid = np.array([x, y])
                 jitter = self.hash22(grid) - 0.5
-                vec = grid + jitter - p
 
-                if (length := (vec[0] ** 2 + vec[1] ** 2) ** 0.5) <= dist:
+                if (length := self.get_norm(grid + jitter - p)) <= dist:
                     dist = length
                     lattice_pt = grid
 
@@ -51,9 +49,8 @@ class Voronoi(Noise):
                     x = n[0] + i
                     grid = np.array([x, y, z])
                     jitter = self.hash33(grid) - 0.5
-                    vec = grid + jitter - p
 
-                    if (length := sum(v ** 2 for v in vec) ** 0.5) <= dist:
+                    if (length := self.get_norm(grid + jitter - p)) <= dist:
                         dist = length
                         lattice_pt = grid
 
@@ -108,10 +105,11 @@ class Voronoi(Noise):
 def create_img_8bit(path, grid=12, size=256):
     start = datetime.now()
     voronoi = Voronoi(grid, size)
-    arr = voronoi.noise3(gray=True)
+    arr = voronoi.noise2(gray=True)
     print(f'It took {datetime.now() - start}.')
-    arr *= 255
-    arr = arr.astype(np.uint8)
+    # arr *= 255
+    arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
+    # arr = arr.astype(np.uint8)
     cv2.imwrite(path, arr)
 
 

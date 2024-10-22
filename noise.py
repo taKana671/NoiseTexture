@@ -16,8 +16,8 @@ UINT_MAX = np.iinfo(np.uint).max
 
 class Noise:
 
-    def __init__(self):
-        self.hash = {}
+    # def __init__(self):
+    #     self.hash = {}
 
     def mock_time(self):
         return random.uniform(0, 1000)
@@ -89,6 +89,46 @@ class Noise:
 
         return h / UINT_MAX
 
+    def gtable2(self, lattice, p):
+        lattice = lattice.astype(np.uint)
+
+        if (tup := tuple(lattice)) in self.hash:
+            idx = self.hash[tup]
+        else:
+            idx = random.randint(1, 6)
+            self.hash[tup] = idx
+
+        u = (p[0] if idx < 4 else p[1]) * 0.92387953   # 0.92387953 = cos(pi/8)
+        v = (p[1] if idx < 4 else p[0]) * 0.38268343   # 0.38268343 = sin(pi/8)
+
+        _u = u if idx & 1 == 0 else -u
+        _v = v if idx & 2 == 0 else -v
+
+        return _u + _v
+
+    def gtable3(self, lattice, p):
+        lattice = lattice.astype(np.uint)
+
+        if (tup := tuple(lattice)) in self.hash:
+            idx = self.hash[tup]
+        else:
+            idx = random.randint(0, 15)
+            self.hash[tup] = idx
+
+        u = p[0] if idx < 8 else p[1]
+
+        if idx < 4:
+            v = p[1]
+        elif idx == 12 or idx == 14:
+            v = p[0]
+        else:
+            v = p[2]
+
+        _u = u if idx & 1 == 0 else -u
+        _v = v if idx & 2 == 0 else -v
+
+        return _u + _v
+
     def mix(self, x, y, a):
         return x + (y - x) * a
 
@@ -114,6 +154,9 @@ class Noise:
 
         return x, r
 
+    def get_norm(self, vec):
+        return sum(v ** 2 for v in vec) ** 0.5
+
     # def convert(self, v, t):
     #     tt = abs((0.1 * t) % 2 - 1.0)
     #     n = np.floor(8.0 * t)
@@ -124,13 +167,12 @@ class Noise:
     #     return 0.5 * np.sin(4.0 * np.pi + v + t) + 0.5
 
     def wrap(self, t=None, rot=False):
-        if t is None:
-            t = random.uniform(0, 1000)
-
+        t = self.mock_time() if t is None else t
         self.hash = {}
 
         arr = np.array(
-            [self.wrap2(x + t, y + t, rot) for y in np.linspace(0, self.grid, self.size)
+            [self.wrap2(x + t, y + t, rot)
+                for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )
         arr = arr.reshape(self.size, self.size)
