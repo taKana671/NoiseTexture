@@ -1,23 +1,14 @@
-import cmath
 import random
 
 import numpy as np
 
-k = ('0x456789ab', '0x6789ab45', '0x89ab4567')
-k = np.array([int(v, 0) for v in k], dtype=np.uint)
-u = np.array([1, 2, 3], dtype=np.uint)
-# k = np.array([int(v, 0) for v in k])
-# u = np.array([1, 2, 3])
 
-# UINT_MAX = int('0xffffffff', 0)
+k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint)
+u = np.array([1, 2, 3], dtype=np.uint)
 UINT_MAX = np.iinfo(np.uint).max
 
 
-
 class Noise:
-
-    # def __init__(self):
-    #     self.hash = {}
 
     def mock_time(self):
         return random.uniform(0, 1000)
@@ -36,24 +27,13 @@ class Noise:
         n ^= n[::-1] << u[:2]
         return n * k[:2]
 
-    # kernprof -l -v cellular.py
-
-    # @profile
     def uhash33(self, n):
-        # print(n)
-        # *************************************
-        n ^= np.array([n[1], n[2], n[0]]) << u
-        n ^= np.array([n[1], n[2], n[0]]) >> u
+        n ^= n[[1, 2, 0]] << u
+        # n ^= np.array([n[1], n[2], n[0]]) << u  faster than above
+        n ^= n[[1, 2, 0]] >> u
         n *= k
-        n ^= np.array([n[1], n[2], n[0]]) << u
+        n ^= n[[1, 2, 0]] << u
         return n * k
-
-        # *************************************
-        # n ^= n[[1, 2, 0]] << u
-        # n ^= n[[1, 2, 0]] >> u
-        # n *= k
-        # n ^= n[[1, 2, 0]] << u
-        # return n * k
 
     def hash21(self, p):
         n = p.astype(np.uint)
@@ -65,7 +45,6 @@ class Noise:
             self.hash[key] = h
 
         return h / UINT_MAX
-        # return self.uhash22(n)[0] / UINT_MAX
 
     def hash22(self, p):
         n = p.astype(np.uint)
@@ -157,15 +136,6 @@ class Noise:
     def get_norm(self, vec):
         return sum(v ** 2 for v in vec) ** 0.5
 
-    # def convert(self, v, t):
-    #     tt = abs((0.1 * t) % 2 - 1.0)
-    #     n = np.floor(8.0 * t)
-    #     # return self.step(tt, v)
-    #     # return (np.floor(n * v) + self.step(0.5, np.modf(n * v)[0])) / n  # posterization
-    #     # return self.smoothstep(0.5 * (1.0 - tt), 0.5 * (1.0 + tt), v)  # S-curve
-    #     # return v ** (2.0 * tt) # gamma correction
-    #     return 0.5 * np.sin(4.0 * np.pi + v + t) + 0.5
-
     def wrap(self, t=None, rot=False):
         t = self.mock_time() if t is None else t
         self.hash = {}
@@ -177,30 +147,3 @@ class Noise:
         )
         arr = arr.reshape(self.size, self.size)
         return arr
-
-    # def convert_gradation(self, t=None, rot=False):
-    #     if t is None:
-    #         t = random.uniform(0, 1000)
-
-    #     self.hash = {}
-
-    #     arr = np.array(
-    #         [self.convert(self.wrap2(x + t, y + t, rot), t) for y in np.linspace(0, self.grid, self.size)
-    #             for x in np.linspace(0, self.grid, self.size)]
-    #     )
-    #     arr = arr.reshape(self.size, self.size)
-    #     return arr
-
-        
-
-        # # p = np.arctan2(y, x)
-        # r, p = cmath.polar(complex(x, y)) 
-        # return p, y
-        # cmath.polar(complex(x, y)); r, p
-
-    # def pol2xy(self, r, p):
-    #     x = r * np.cos(p)
-    #     y = r * np.sin(p)
-    #     return x, y
-    #     # z = r * cmath.exp(1j * p)
-    #     # return z.real, z.imag

@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 
 from noise import Noise
@@ -72,35 +71,3 @@ class Perlin(Noise):
             v = self.pnoise2(np.array([_x, _y]))
 
         return v
-
-
-# np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
-def create_img_8bit(path, weight=1, grid=8, size=256):
-    perlin = Perlin(weight, grid, size)
-    # arr = perlin.noise3()
-    arr = perlin.wrap(rot=True)
-    # arr = perlin.convert_gradation(rot=True)
-    # arr = perlin.noise2()
-
-    # arr = np.abs(arr)
-    arr *= 255
-    arr = arr.astype(np.uint8)
-    cv2.imwrite(path, arr)
-
-
-def create_img_16bit(path, grid=2, size=256):
-    perlin = Perlin(grid, size)
-    # arr = perlin.noise3()
-    arr = perlin.wrap(rot=True)
-
-    # img = np.abs(arr)
-    arr *= 65535
-    arr = arr.astype(np.uint16)
-    cv2.imwrite(path, arr)
-
-
-if __name__ == '__main__':
-    # create_img_8bit('perlin_sample04.png')
-    create_img_8bit('test.png')
-    # create_img_16bit('perlin_sample01.png')
-    # create_img_16bit('test.png')

@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 
 from noise import Noise
@@ -71,28 +70,3 @@ class Periodic(Noise):
                 arr[i, j] = self.periodic3(np.array([_x, _y, t]))
 
         return arr
-
-
-# np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
-def create_img_8bit(path, period=4, grid=4, size=256):
-    periodic = Periodic(period, grid, size)
-    arr = periodic.noise3()
-
-    arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
-    # arr *= 255
-    # arr = arr.astype(np.uint8)
-    cv2.imwrite(path, arr)
-
-
-def create_img_16bit(path, period=4, grid=4, size=256):
-    periodic = Periodic(period, grid, size)
-    arr = periodic.noise2()
-
-    arr *= 65535
-    arr = arr.astype(np.uint16)
-    cv2.imwrite(path, arr)
-
-
-if __name__ == '__main__':
-    create_img_8bit('periodic_sample02.png')
-    # create_img_16bit('periodic_sample02.png')

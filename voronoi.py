@@ -1,6 +1,3 @@
-from datetime import datetime
-
-import cv2
 import numpy as np
 
 from noise import Noise
@@ -99,31 +96,3 @@ class Voronoi(Noise):
             arr = arr.reshape(self.size, self.size, 3)
 
         return arr
-
-
-# np.count_nonzero(np.sign(arr) < 0) ; no less than zero: no
-def create_img_8bit(path, grid=12, size=256):
-    start = datetime.now()
-    voronoi = Voronoi(grid, size)
-    arr = voronoi.noise2(gray=True)
-    print(f'It took {datetime.now() - start}.')
-    # arr *= 255
-    arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
-    # arr = arr.astype(np.uint8)
-    cv2.imwrite(path, arr)
-
-
-def create_img_16bit(path, grid=8, size=256):
-    voronoi = Voronoi(grid, size)
-    arr = voronoi.noise2()
-
-    arr *= 65535
-    arr = arr.astype(np.uint16)
-    cv2.imwrite(path, arr)
-
-
-if __name__ == '__main__':
-    # create_img_8bit('fbm_sample02.png')
-    create_img_8bit('test2.png')
-    # create_img_16bit('fbm_sample02.png')
-    # create_img_16bit('test2.png')

@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 
 from noise import Noise
@@ -136,32 +135,3 @@ class Cellular(Noise):
         )
         arr = arr.reshape(self.size, self.size)
         return arr
-
-
-def create_img_8bit(path, grid=8, size=256):
-    cellular = Cellular(grid, size)
-    arr = cellular.noise3()
-    # arr = cellular.noise2()
-    # arr = cellular.noise24(nearest=2)
-
-    # arr *= 255
-    arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
-    # arr = arr.astype(np.uint8)
-    # np.savetxt('sample_arr.txt', arr)
-    cv2.imwrite(path, arr)
-
-
-def create_img_16bit(path, grid=4, size=256):
-    cellular = Cellular(grid, size)
-    arr = cellular.noise3()
-    # arr = cellular.noise2()
-    # arr = np.abs(arr)
-    arr *= 65535
-    arr = arr.astype(np.uint16)
-    cv2.imwrite(path, arr)
-
-
-if __name__ == '__main__':
-    create_img_8bit('cellular_sample01.png')
-    # create_img_16bit('cellular_sample01.png')
-
