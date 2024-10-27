@@ -12,18 +12,13 @@ from noise cimport Noise
 cdef class Perlin(Noise):
 
     cdef:
-        int grid
-        int size
         double weight
 
     def __init__(self, weight=0.5, grid=4, size=256):
-        super().__init__()
-        self.size = size
-        self.grid = grid
+        super().__init__(grid, size)
         self.weight = weight
 
     cdef double wrap2(self, double x, double y, bint rot=False):
-
         cdef:
             double v = 0.0
             double cx, sy, _x, _y
@@ -41,7 +36,7 @@ cdef class Perlin(Noise):
         cdef:
             double fx, fy, ret, w0, w1
             unsigned int i, j, ix, iy
-            double [4] v
+            double[4] v
             unsigned int[2] arr_i
             double[2] arr_f
 
@@ -119,18 +114,6 @@ cdef class Perlin(Noise):
 
         arr = np.array(
             [self.pnoise3(x + t, y + t, t)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
-        )
-        arr = arr.reshape(self.size, self.size)
-        return arr
-
-    
-    cpdef wrap(self, rot=False):
-        t = self.mock_time()
-
-        arr = np.array(
-            [self.wrap2(x + t, y + t, rot)
                 for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )

@@ -3,6 +3,7 @@
 
 import random
 
+import cython
 import numpy as np
 cimport numpy as cnp
 
@@ -14,7 +15,10 @@ UINT_MAX = np.iinfo(np.uint).max
 
 cdef class Noise:
 
-    def __init__(self):
+    def __init__(self, grid, size):
+        self.size = size
+        self.grid = grid
+
         self.k = [1164413355, 1737075525, 2309703015]
         self.u = [1, 2, 3]
 
@@ -68,40 +72,50 @@ cdef class Noise:
         n[0][1] *= self.k[1]
         n[0][2] *= self.k[2]
 
-    #def hash21(self, p):
-        #n = p.astype(np.uint)
-        #h = self.uhash22(n)[0]
-        # if (key := tuple(n)) in self.hash:
-        #     h = self.hash[key]
-        # else:
-        #     h = self.uhash22(n)[0]
-        #     self.hash[key] = h
 
-        #return h / UINT_MAX
+    @cython.cdivision(True)
+    cdef double hash21(self, double[2] *p):
+        cdef:
+            unsigned int uint_max = 4294967295
+            unsigned int[2] n
+            double h
 
-    # def hash22(self, p):
-        # n = p.astype(np.uint)
-        # h = self.uhash22(n)
+        for i in range(2):
+            n[i] = <unsigned int>p[0][i]
 
-        # if (key := tuple(n)) in self.hash:
-        #     h = self.hash[key]
-        # else:
-        #     h = self.uhash22(n)
-        #     self.hash[key] = h
+        self.uhash22(&n)
+        h = <double>n[0] / uint_max
+        return h
 
-        # return h / UINT_MAX
+    @cython.cdivision(True)
+    cdef void hash22(self, double[2] *p, double[2] *h):
+        cdef:
+            unsigned i
+            unsigned int uint_max = 4294967295
+            unsigned int[2] n
 
-    # def hash33(self, p):
-        # n = p.astype(np.uint)
-        # h = self.uhash33(n)
+        for i in range(2):
+            n[i] = <unsigned int>p[0][i]
 
-        # if (key := tuple(n)) in self.hash:
-        #     h = self.hash[key]
-        # else:
-        #     h = self.uhash33(n)
-        #     self.hash[key] = h
+        self.uhash22(&n)
 
-        # return h / UINT_MAX
+        for i in range(2):
+            h[0][i] = <double>n[i] / uint_max
+
+    @cython.cdivision(True)
+    cdef void hash33(self, double[3] *p, double[3] *h):
+        cdef:
+            unsigned i
+            unsigned int uint_max = 4294967295
+            unsigned int[3] n
+
+        for i in range(3):
+            n[i] = <unsigned int>p[0][i]
+
+        self.uhash33(&n)
+
+        for i in range(3):
+            h[0][i] = <double>n[i] / uint_max
 
     cdef double gtable2(self, unsigned int[2] *lattice, double[2] *p):
         cdef:
@@ -142,11 +156,11 @@ cdef class Noise:
 
     cdef double fade(self, double x):
         return 6 * x**5 - 15 * x**4 + 10 * x**3
-    
+
     cdef double mix(self, double x, double y, double a):
         return x + (y - x) * a
 
-    def step(self, a, x):
+    cdef unsigned int step(self, double a, double x):
         if x <= a:
             return 0
         return 1
@@ -168,5 +182,25 @@ cdef class Noise:
 
         return x, r
 
-    def get_norm(self, vec):
-        return sum(v ** 2 for v in vec) ** 0.5
+    cdef double get_norm3(self, double[3] *v):
+        return (v[0][0] ** 2 + v[0][1] ** 2 + v[0][2] ** 2) ** 0.5
+
+    cdef double get_norm2(self, double[2] *v):
+        return (v[0][0] ** 2 + v[0][1] ** 2) ** 0.5
+        
+    #def get_norm(self, vec):
+        #return sum(v ** 2 for v in vec) ** 0.5
+
+    cpdef wrap(self, bint rot=False):
+        t = self.mock_time()
+
+        arr = np.array(
+            [self.wrap2(x + t, y + t, rot)
+                for y in np.linspace(0, self.grid, self.size)
+                for x in np.linspace(0, self.grid, self.size)]
+        )
+        arr = arr.reshape(self.size, self.size)
+        return arr
+
+    cdef double wrap2(self, double x, double y, bint rot=False):
+        pass
