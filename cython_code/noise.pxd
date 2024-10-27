@@ -17,9 +17,9 @@ cdef class Noise:
 
     cdef void hash33(self, double[3] *p, double[3] *h)
 
-    cdef double gtable2(self, unsigned int[2] *lattice, double[2] *p)
+    cdef double gtable2(self, double[2] *lattice, double[2] *p)
 
-    cdef double gtable3(self, unsigned int[3] *lattice, double[3] *p)
+    cdef double gtable3(self, double[3] *lattice, double[3] *p)
 
     cdef double fade(self, double x)
 

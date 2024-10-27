@@ -6,6 +6,7 @@ import random
 import cython
 import numpy as np
 cimport numpy as cnp
+from libc.math cimport atan2, cos, sin, pi
 
 
 # k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint)
@@ -90,7 +91,7 @@ cdef class Noise:
     @cython.cdivision(True)
     cdef void hash22(self, double[2] *p, double[2] *h):
         cdef:
-            unsigned i
+            unsigned int i
             unsigned int uint_max = 4294967295
             unsigned int[2] n
 
@@ -105,7 +106,7 @@ cdef class Noise:
     @cython.cdivision(True)
     cdef void hash33(self, double[3] *p, double[3] *h):
         cdef:
-            unsigned i
+            unsigned int i
             unsigned int uint_max = 4294967295
             unsigned int[3] n
 
@@ -117,13 +118,17 @@ cdef class Noise:
         for i in range(3):
             h[0][i] = <double>n[i] / uint_max
 
-    cdef double gtable2(self, unsigned int[2] *lattice, double[2] *p):
+    cdef double gtable2(self, double[2] *lattice, double[2] *p):
         cdef:
-            unsigned int idx
+            unsigned int idx, i
             double u, v, _u, _v
+            unsigned int[2] n
 
-        self.uhash22(lattice)
-        idx = lattice[0][0] >> 29
+        for i in range(3):
+            n[i] = <unsigned int>lattice[0][i]
+
+        self.uhash22(&n)
+        idx = n[0] >> 29
 
         u = (p[0][0] if idx < 4 else p[0][1]) * 0.92387953   # 0.92387953 = cos(pi/8)
         v = (p[0][1] if idx < 4 else p[0][0]) * 0.38268343   # 0.38268343 = sin(pi/8)
@@ -132,14 +137,17 @@ cdef class Noise:
 
         return _u + _v
 
-    cdef double gtable3(self, unsigned int[3] *lattice, double[3] *p):
+    cdef double gtable3(self, double[3] *lattice, double[3] *p):
         cdef:
-            unsigned int idx
+            unsigned int idx, i
             double u, v, _u, _v
+            unsigned int[3] n
 
-        self.uhash33(lattice)
-        idx = lattice[0][0] >> 28
+        for i in range(3):
+            n[i] = <unsigned int>lattice[0][i]
 
+        self.uhash33(&n)
+        idx = n[0] >> 28
         u = p[0][0] if idx < 8 else p[0][1]
 
         if idx < 4:
@@ -172,24 +180,35 @@ cdef class Noise:
         t = np.clip((x - edge0) / (edge1 - edge0), 0.0, 1.0)
         return t * t * (3.0 - 2.0 * t)
 
-    def xy2pol(self, x, y):
-        r = (x ** 2 + y ** 2) ** 0.5
+    
+    def sign_with_abs(x):
+        return 0.0 if abs(x) == 0 else x / abs(x)
+    
+    cdef (double, double) xy2pol(self, double[2] *p):
+        r = self.get_norm2(p)
 
-        if x == 0:
+        if p[0][0] == 0:
             x = np.sign(y) * np.pi / 2
         else:
             x = np.arctan2(y, x)
 
         return x, r
 
+    #def xy2pol(self, x, y):
+    #    r = (x ** 2 + y ** 2) ** 0.5
+
+    #    if x == 0:
+    #        x = np.sign(y) * np.pi / 2
+    #    else:
+    #        x = np.arctan2(y, x)
+
+    #    return x, r
+
     cdef double get_norm3(self, double[3] *v):
         return (v[0][0] ** 2 + v[0][1] ** 2 + v[0][2] ** 2) ** 0.5
 
     cdef double get_norm2(self, double[2] *v):
         return (v[0][0] ** 2 + v[0][1] ** 2) ** 0.5
-        
-    #def get_norm(self, vec):
-        #return sum(v ** 2 for v in vec) ** 0.5
 
     cpdef wrap(self, bint rot=False):
         t = self.mock_time()

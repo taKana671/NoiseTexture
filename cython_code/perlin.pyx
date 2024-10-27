@@ -34,26 +34,21 @@ cdef class Perlin(Noise):
 
     cdef double pnoise2(self, double x, double y):
         cdef:
-            double fx, fy, ret, w0, w1
-            unsigned int i, j, ix, iy
+            double nx, ny, fx, fy, w0, w1
+            unsigned int i, j
             double[4] v
-            unsigned int[2] arr_i
-            double[2] arr_f
+            double[2] arr_f, arr_n
 
-        ix = <unsigned int>floor(x)
-        iy = <unsigned int>floor(y)
-
-        fx = x - ix
-        fy = y - iy
+        nx = floor(x)
+        ny = floor(y)
+        fx = x - nx
+        fy = y - ny
 
         for j in range(2):
             for i in range(2):
-                    
-                arr_i = [ix + i, iy + j]
+                arr_n = [nx + i, ny + j]
                 arr_f = [fx - i, fy - j]
-
-                ret = self.gtable2(&arr_i, &arr_f)
-                v[i + 2 * j] = ret
+                v[i + 2 * j] = self.gtable2(&arr_n, &arr_f)
 
         fx = self.fade(fx)
         fy = self.fade(fy)
@@ -65,29 +60,24 @@ cdef class Perlin(Noise):
 
     cdef double pnoise3(self, double x, double y, double z):
         cdef:
-            double fx, fy, fz, ret, w0, w1
-            unsigned int i, j, k, ix, iy, iz
-            double [8] v
-            unsigned int[3] arr_i
-            double[3] arr_f 
+            double fx, fy, fz, nx, ny, nz, w0, w1
+            unsigned int i, j, k
+            double[8] v
+            double[3] arr_f, arr_n
 
-        ix = <unsigned int>floor(x)
-        iy = <unsigned int>floor(y)
-        iz = <unsigned int>floor(z)
-
-        fx = x - ix
-        fy = y - iy
-        fz = z - iz
+        nx = floor(x)
+        ny = floor(y)
+        nz = floor(z)
+        fx = x - nx
+        fy = y - ny
+        fz = z - nz
 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
-                    
-                    arr_i = [ix + i, iy + j, iz + k]
+                    arr_n = [nx + i, ny + j, nz + k]
                     arr_f = [fx - i, fy - j, fz - k]
-
-                    ret = self.gtable3(&arr_i, &arr_f) * 0.70710678
-                    v[i + 2 * j + 4 * k] = ret
+                    v[i + 2 * j + 4 * k] = self.gtable3(&arr_n, &arr_f) * 0.70710678
 
         fx = self.fade(fx)
         fy = self.fade(fy)
