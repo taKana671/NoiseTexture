@@ -13,7 +13,8 @@ ext1 = Extension(
 ext2 = Extension(
     'perlin',
     ['perlin.pyx'],
-    include_dirs=[numpy.get_include()]
+    include_dirs=[numpy.get_include()],
+    define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 )
 
 ext3 = Extension(
@@ -35,7 +36,13 @@ ext5 = Extension(
     include_dirs=[numpy.get_include()]
 )
 
+ext6 = Extension(
+    'periodic',
+    ['periodic.pyx'],
+    include_dirs=[numpy.get_include()]
+)
+
 setup(
     name='noise_image',
-    ext_modules=cythonize([ext1, ext5])
+    ext_modules=cythonize([ext1, ext2, ext6])
 )
