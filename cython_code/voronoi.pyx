@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 import numpy as np
 from libc.math cimport floor
 
@@ -12,7 +14,7 @@ cdef class Voronoi(Noise):
     cdef list voronoi2(self, double x, double y):
         cdef:
             int i, j, ii
-            double nx, ny
+            double nx, ny, length
             double[2] grid, jitter, lattice_pt, v, h
             double[2] p = [x, y]
             double dist = 2.0 ** 0.5
@@ -43,7 +45,7 @@ cdef class Voronoi(Noise):
     cdef list voronoi3(self, double x, double y, double z):
         cdef:
             int i, j, k, ii
-            double nx, ny, nz
+            double nx, ny, nz, length
             double[3] grid, jitter, lattice_pt, v, h
             double[3] p = [x, y, z]
             double dist = 3.0 ** 0.5
@@ -77,8 +79,8 @@ cdef class Voronoi(Noise):
         self.hash33(&lattice_pt, &h)
         return h
 
-    cpdef noise3(self, gray=True):
-        t = self.mock_time()
+    cpdef noise3(self, gray=True, t=None):
+        t = self.mock_time() if t is None else float(t)
 
         if gray:
             vec = [0.3, 0.6, 0.2]
@@ -98,8 +100,8 @@ cdef class Voronoi(Noise):
 
         return arr
 
-    cpdef noise2(self, gray=True):
-        t = self.mock_time()
+    cpdef noise2(self, gray=True, t=None):
+        t = self.mock_time() if t is None else float(t)
 
         if gray:
             vec = [0.3, 0.6]

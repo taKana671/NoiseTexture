@@ -1,4 +1,3 @@
-# cython: profile=True
 # cython: language_level=3
 
 import math
@@ -140,7 +139,7 @@ cdef class Perlin(Noise):
         return 0.5 * self.mix(w0, w1, fz) + 0.5
 
     cpdef noise2(self, t=None):
-        t = self.mock_time() if t is None else t
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.pnoise2(x + t, y + t)
@@ -151,7 +150,7 @@ cdef class Perlin(Noise):
         return arr
 
     cpdef noise3(self, t=None):
-        t = self.mock_time() if t is None else t
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.pnoise3(x + t, y + t, t)

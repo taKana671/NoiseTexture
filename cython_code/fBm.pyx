@@ -1,4 +1,3 @@
-# cython: profile=True
 # cython: language_level=3
 
 import numpy as np
@@ -21,7 +20,7 @@ cdef class FractionalBrownianMotion(Noise):
         cdef:
             unsigned int i, j
             double[2] arr
-            double fx, fy, ret, nx, ny
+            double fx, fy, ret, nx, ny, w0, w1
             double[4] v
 
         nx = floor(x)
@@ -30,15 +29,17 @@ cdef class FractionalBrownianMotion(Noise):
         fy = y - ny
 
         for j in range(2):
+            arr[1] = ny + j
+
             for i in range(2):
-                arr = [nx + i, ny + j]
+                arr[0] = nx + i
                 v[i + 2 * j] = self.hash21(&arr)
 
         fx = self.fade(fx)
         fy = self.fade(fy)
-
         w0 = self.mix(v[0], v[1], fx)
         w1 = self.mix(v[2], v[3], fx)
+
         return self.mix(w0, w1, fy)
 
     cdef double fbm2(self, double x, double y):
@@ -55,8 +56,8 @@ cdef class FractionalBrownianMotion(Noise):
 
         return 0.5 * v + 0.5
 
-    cpdef noise2(self):
-        t = self.mock_time()
+    cpdef noise2(self, t=None):
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.fbm2(x + t, y + t)

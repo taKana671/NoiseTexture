@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 import numpy as np
 from libc.math cimport floor
 
@@ -25,7 +27,7 @@ cdef class Cellular(Noise):
     cdef list fdist24(self, double x, double y):
         cdef:
             int i, j, ii
-            double nx, ny
+            double nx, ny, length
             double[2] grid, jitter, v, temp
             double[2] p = [x, y]
             double[4] dist4
@@ -37,7 +39,7 @@ cdef class Cellular(Noise):
         length = self.get_norm2(&temp)
 
         for i in range(4):
-            dist4[0] = length
+            dist4[i] = length
 
         for j in (0, 1, -1, 2, -2):
             grid[1] = ny + j
@@ -59,7 +61,7 @@ cdef class Cellular(Noise):
     cdef double fdist2(self, double x, double y):
         cdef:
             int i, j, ii
-            double nx, ny
+            double nx, ny, length
             double[2] grid, jitter, v
             double[2] p = [x, y]
             double dist = 2.0 ** 0.5
@@ -87,7 +89,7 @@ cdef class Cellular(Noise):
     cdef double fdist3(self, double x, double y, double z):
         cdef:
             int i, j, k, ii
-            double nx, ny, nz
+            double nx, ny, nz, length
             double[3] grid, jitter, v
             double[3] p = [x, y, z]
             double dist = 3.0 ** 0.5
@@ -118,8 +120,8 @@ cdef class Cellular(Noise):
 
         return dist
 
-    cpdef noise2(self):
-        t = self.mock_time()
+    cpdef noise2(self, t=None):
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.fdist2(x + t, y + t)
@@ -129,8 +131,8 @@ cdef class Cellular(Noise):
         arr = arr.reshape(self.size, self.size)
         return arr
 
-    cpdef noise3(self):
-        t = self.mock_time()
+    cpdef noise3(self, t=None):
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.fdist3(x + t, y + t, t)
@@ -140,8 +142,8 @@ cdef class Cellular(Noise):
         arr = arr.reshape(self.size, self.size)
         return arr
 
-    cpdef noise24(self, nearest=2):
-        t = self.mock_time()
+    cpdef noise24(self, nearest=2, t=None):
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.fdist24(x + t, y + t)[nearest - 1]

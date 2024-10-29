@@ -1,4 +1,3 @@
-# cython: profile=True
 # cython: language_level=3
 
 import random
@@ -7,11 +6,6 @@ import cython
 import numpy as np
 cimport numpy as cnp
 from libc.math cimport atan2, cos, sin, pi
-
-
-# k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint)
-# u = np.array([1, 2, 3], dtype=np.uint)
-UINT_MAX = np.iinfo(np.uint).max
 
 
 cdef class Noise:
@@ -74,6 +68,7 @@ cdef class Noise:
     cdef double hash21(self, double[2] *p):
         cdef:
             unsigned int uint_max = 4294967295
+            unsigned int i
             unsigned int[2] n
             double h
 
@@ -87,8 +82,8 @@ cdef class Noise:
     @cython.cdivision(True)
     cdef void hash22(self, double[2] *p, double[2] *h):
         cdef:
-            unsigned int i
             unsigned int uint_max = 4294967295
+            unsigned int i
             unsigned int[2] n
 
         for i in range(2):
@@ -102,8 +97,8 @@ cdef class Noise:
     @cython.cdivision(True)
     cdef void hash33(self, double[3] *p, double[3] *h):
         cdef:
-            unsigned int i
             unsigned int uint_max = 4294967295
+            unsigned int i
             unsigned int[3] n
 
         for i in range(3):
@@ -160,7 +155,7 @@ cdef class Noise:
         return (v[0][0] ** 2 + v[0][1] ** 2) ** 0.5
 
     cpdef wrap(self, rot=False, t=None):
-        t = self.mock_time()
+        t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
             [self.wrap2(x + t, y + t, rot)
