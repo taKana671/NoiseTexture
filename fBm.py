@@ -6,8 +6,7 @@ from noise import Noise
 class FractionalBrownianMotion(Noise):
 
     def __init__(self, weight=0.5, grid=4, size=256):
-        self.size = size
-        self.grid = grid
+        super().__init__(grid, size)
         self.weight = weight
 
     def vnoise2(self, p):
@@ -15,7 +14,7 @@ class FractionalBrownianMotion(Noise):
         v = [self.hash21(n + np.array([i, j])) for j in range(2) for i in range(2)]
 
         f, _ = np.modf(p)
-        f = 6 * f**5 - 15 * f**4 + 10 * f**3
+        f = self.fade(f)
         w0 = self.mix(v[0], v[1], f[0])
         w1 = self.mix(v[2], v[3], f[0])
         return self.mix(w0, w1, f[1])
@@ -25,7 +24,7 @@ class FractionalBrownianMotion(Noise):
         amp = 1.0
         freq = 1.0
 
-        for i in range(4):
+        for _ in range(4):
             v += amp * (self.vnoise2(freq * p) - 0.5)
             amp *= self.weight
             freq *= 2.011
@@ -47,7 +46,7 @@ class FractionalBrownianMotion(Noise):
     def wrap2(self, x, y, rot=False):
         v = 0.0
 
-        for i in range(4):
+        for _ in range(4):
             cx = np.cos(2 * np.pi * v) if rot else v
             sy = np.sin(2 * np.pi * v) if rot else v
             x += self.weight * cx

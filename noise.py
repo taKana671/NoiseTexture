@@ -3,12 +3,16 @@ import random
 import numpy as np
 
 
-k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint)
-u = np.array([1, 2, 3], dtype=np.uint)
-UINT_MAX = np.iinfo(np.uint).max
+k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint32)
+u = np.array([1, 2, 3], dtype=np.uint32)
+UINT_MAX = np.iinfo(np.uint32).max
 
 
 class Noise:
+
+    def __init__(self, grid, size):
+        self.size = size
+        self.grid = grid
 
     def mock_time(self):
         return random.uniform(0, 1000)
@@ -18,95 +22,54 @@ class Noise:
         n ^= n >> u[0]
         n *= k[0]
         n ^= n << u[0]
-        return n * k[0]
+        n *= k[0]
 
     def uhash22(self, n):
         n ^= n[::-1] << u[:2]
         n ^= n[::-1] >> u[:2]
         n *= k[:2]
         n ^= n[::-1] << u[:2]
-        return n * k[:2]
+        n *= k[:2]
 
     def uhash33(self, n):
         n ^= n[[1, 2, 0]] << u
-        # n ^= np.array([n[1], n[2], n[0]]) << u  faster than above
         n ^= n[[1, 2, 0]] >> u
         n *= k
         n ^= n[[1, 2, 0]] << u
-        return n * k
+        n *= k
 
     def hash21(self, p):
-        n = p.astype(np.uint)
+        n = p.astype(np.uint32)
 
         if (key := tuple(n)) in self.hash:
-            h = self.hash[key]
-        else:
-            h = self.uhash22(n)[0]
-            self.hash[key] = h
+            return self.hash[key]
 
-        return h / UINT_MAX
+        self.uhash22(n)
+        h = n[0] / UINT_MAX
+        self.hash[key] = h
+        return h
 
     def hash22(self, p):
-        n = p.astype(np.uint)
+        n = p.astype(np.uint32)
 
         if (key := tuple(n)) in self.hash:
-            h = self.hash[key]
-        else:
-            h = self.uhash22(n)
-            self.hash[key] = h
+            return self.hash[key]
 
-        return h / UINT_MAX
+        self.uhash22(n)
+        h = n / UINT_MAX
+        self.hash[key] = h
+        return h
 
     def hash33(self, p):
-        n = p.astype(np.uint)
+        n = p.astype(np.uint32)
 
         if (key := tuple(n)) in self.hash:
-            h = self.hash[key]
-        else:
-            h = self.uhash33(n)
-            self.hash[key] = h
+            return self.hash[key]
 
-        return h / UINT_MAX
-
-    def gtable2(self, lattice, p):
-        lattice = lattice.astype(np.uint)
-
-        if (tup := tuple(lattice)) in self.hash:
-            idx = self.hash[tup]
-        else:
-            idx = random.randint(1, 6)
-            self.hash[tup] = idx
-
-        u = (p[0] if idx < 4 else p[1]) * 0.92387953   # 0.92387953 = cos(pi/8)
-        v = (p[1] if idx < 4 else p[0]) * 0.38268343   # 0.38268343 = sin(pi/8)
-
-        _u = u if idx & 1 == 0 else -u
-        _v = v if idx & 2 == 0 else -v
-
-        return _u + _v
-
-    def gtable3(self, lattice, p):
-        lattice = lattice.astype(np.uint)
-
-        if (tup := tuple(lattice)) in self.hash:
-            idx = self.hash[tup]
-        else:
-            idx = random.randint(0, 15)
-            self.hash[tup] = idx
-
-        u = p[0] if idx < 8 else p[1]
-
-        if idx < 4:
-            v = p[1]
-        elif idx == 12 or idx == 14:
-            v = p[0]
-        else:
-            v = p[2]
-
-        _u = u if idx & 1 == 0 else -u
-        _v = v if idx & 2 == 0 else -v
-
-        return _u + _v
+        self.uhash33(n)
+        h = n / UINT_MAX
+        self.hash[key] = h
+        return h
 
     def mix(self, x, y, a):
         return x + (y - x) * a
@@ -135,6 +98,9 @@ class Noise:
 
     def get_norm(self, vec):
         return sum(v ** 2 for v in vec) ** 0.5
+
+    def fade(self, x):
+        return 6 * x**5 - 15 * x**4 + 10 * x**3
 
     def wrap(self, t=None, rot=False):
         t = self.mock_time() if t is None else t

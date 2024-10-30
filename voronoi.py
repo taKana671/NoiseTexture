@@ -6,6 +6,7 @@ from noise import Noise
 class Voronoi(Noise):
 
     def __init__(self, grid=4, size=256):
+        super().__init__(grid, size)
         self.size = size
         self.grid = grid
 
@@ -32,7 +33,7 @@ class Voronoi(Noise):
     def voronoi3(self, p):
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
-        lattice_pt = np.zeros(0)
+        lattice_pt = np.zeros(3)
 
         for k in (0, 1, -1):
             if abs((z := n[2] + k) - p[2]) - 0.5 > dist:

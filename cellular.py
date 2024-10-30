@@ -6,8 +6,7 @@ from noise import Noise
 class Cellular(Noise):
 
     def __init__(self, grid=4, size=256):
-        self.size = size
-        self.grid = grid
+        super().__init__(grid, size)
 
     def sort4(self, dist4, length):
 
