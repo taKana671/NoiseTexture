@@ -6,41 +6,41 @@ import numpy
 extensions = [
     Extension(
         'noise',
-        ['noise.pyx'],
+        ['cynoise/noise.pyx'],
         include_dirs=[numpy.get_include()],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
     ),
     Extension(
         'perlin',
-        ['perlin.pyx'],
+        ['cynoise/perlin.pyx'],
         include_dirs=[numpy.get_include()],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
     ),
     Extension(
         'fBm',
-        ['fBm.pyx'],
+        ['cynoise/fBm.pyx'],
         include_dirs=[numpy.get_include()],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
     ),
     Extension(
         'cellular',
-        ['cellular.pyx'],
+        ['cynoise/cellular.pyx'],
         include_dirs=[numpy.get_include()]
     ),
     Extension(
         'voronoi',
-        ['voronoi.pyx'],
+        ['cynoise/voronoi.pyx'],
         include_dirs=[numpy.get_include()]
     ),
     Extension(
         'periodic',
-        ['periodic.pyx'],
+        ['cynoise/periodic.pyx'],
         include_dirs=[numpy.get_include()]
     )
 ]
 
 setup(
-    name='noise_image',
+    ext_package='cynoise',
     ext_modules=cythonize(
         extensions,
         compiler_directives={'profile': False}

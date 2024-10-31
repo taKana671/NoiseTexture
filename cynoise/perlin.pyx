@@ -5,7 +5,7 @@ import numpy as np
 cimport numpy as cnp
 from libc.math cimport floor, cos, sin, pi
 
-from noise cimport Noise
+from cynoise.noise cimport Noise
 
 
 cdef class Perlin(Noise):

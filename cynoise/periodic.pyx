@@ -4,7 +4,7 @@ import cython
 import numpy as np
 from libc.math cimport floor, pi
 
-from noise cimport Noise
+from cynoise.noise cimport Noise
 
 
 cdef class Periodic(Noise):

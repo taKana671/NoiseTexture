@@ -3,7 +3,7 @@
 import numpy as np
 from libc.math cimport floor
 
-from noise cimport Noise
+from cynoise.noise cimport Noise
 
 
 cdef class Cellular(Noise):
