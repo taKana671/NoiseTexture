@@ -1,6 +1,7 @@
 # NoiseTexture
 
 This repository contains python and cython modules that can generate noise images, which can be used for texture and heightmap to visualize the terrain in 3D. 
+In the python modules, numpy is mainly used, and in the Cython modules, C array is mainly used. 
 
 
 # Building Cython code
