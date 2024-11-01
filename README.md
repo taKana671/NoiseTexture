@@ -47,9 +47,12 @@ When making terrain with Panda3D, an image which bit-depth is 16 is required.
 
 # Speed ​​comparison
 
+The execution time of each methods were measured like this.
+
 ```
 maker = Voroni()
 reslt = %timeit -o maker.noise2()
+print(reslt.best, reslt.loops, reslt.repeat)
 ```
 
 <table>
