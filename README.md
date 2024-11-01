@@ -110,7 +110,7 @@ print(reslt.best, reslt.loops, reslt.repeat)
     </tr>
     <tr>
       <td>FBM.wrap</td>
-      <td>15.436033</td>
+      <td>15.43603</td>
       <td>1</td>
       <td>7</td>
       <td>0.139114</td>
