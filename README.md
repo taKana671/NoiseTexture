@@ -38,6 +38,8 @@ create_image_16bit(arr)
 maker = Perlin(grid=8, size=257)
 
 ```
+
+A noise image will be output as png file.   
 For details of methods and parameters, please see source codes.   
 When making terrain with Panda3D, an image which bit-depth is 16 is required.
 (See [DeliveryCart](https://github.com/taKana671/DeliveryCart) or [MazeLand](https://github.com/taKana671/MazeLand))
