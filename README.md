@@ -40,10 +40,7 @@ maker = Perlin(grid=8, size=257)
 ```
 
 A noise image will be output as png file.   
-For more details of methods and parameters, please see source codes.   
-When making terrain with Panda3D, an image which bit-depth is 16 is required.
-(See [DeliveryCart](https://github.com/taKana671/DeliveryCart) or [MazeLand](https://github.com/taKana671/MazeLand))
-
+For more details of methods and parameters, please see source codes.
 
 ![sample](https://github.com/user-attachments/assets/d8c7a581-de6b-4af6-90ad-a4d095d6a854)
 
