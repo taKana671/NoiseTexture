@@ -15,8 +15,9 @@ class Voronoi(Noise):
         dist = 2.0 ** 0.5
         lattice_pt = np.zeros(2)
 
-        for j in (0, 1, -1):
-            if abs((y := n[1] + j) - p[1]) - 0.5 > dist:
+        for j in range(3):
+            y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+            if abs(y - p[1]) - 0.5 > dist:
                 continue
 
             for i in range(-1, 2):
@@ -35,12 +36,14 @@ class Voronoi(Noise):
         dist = 3.0 ** 0.5
         lattice_pt = np.zeros(3)
 
-        for k in (0, 1, -1):
-            if abs((z := n[2] + k) - p[2]) - 0.5 > dist:
+        for k in range(3):
+            z = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
+            if abs(z - p[2]) - 0.5 > dist:
                 continue
 
-            for j in (0, 1, -1):
-                if abs((y := n[1] + j) - p[1]) - 0.5 > dist:
+            for j in range(3):
+                y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+                if abs(y - p[1]) - 0.5 > dist:
                     continue
 
                 for i in range(-1, 2):

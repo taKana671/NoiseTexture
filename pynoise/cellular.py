@@ -17,7 +17,7 @@ class Cellular(Noise):
             return np.array([dist4[0], length, *dist4[1:3]])
 
         if self.step(length, dist4[2]):
-            return np.array([*dist4[:2], length, dist4[3]])
+            return np.array([*dist4[:2], length, dist4[2]])
 
         if self.step(length, dist4[3]):
             return np.array([*dist4[:3], length])
@@ -32,8 +32,9 @@ class Cellular(Noise):
         length = sum(v ** 2 for v in temp) ** 0.5
         dist4 = np.full(4, length)
 
-        for j in (0, 1, -1, 2, -2):
-            if abs((y := n[1] + j) - p[1]) - 0.5 > dist4[3]:
+        for j in range(5):
+            y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+            if abs(y - p[1]) - 0.5 > dist4[3]:
                 continue
 
             for i in range(-2, 3):
@@ -47,6 +48,37 @@ class Cellular(Noise):
 
         return dist4
 
+    def fdist34(self, p):
+        """Compute the 1st, 2nd, 3rd and 4th 3D nearest neighbor distance.
+            Args:
+                p (numpy.numpy.ndarray): the length is 3.
+        """
+        n = np.floor(p + 0.5)
+        temp = 1.5 - np.abs(p - n)
+        length = sum(v ** 2 for v in temp) ** 0.5
+        dist4 = np.full(4, length)
+
+        for k in range(5):
+            z = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
+            if abs(z - p[2]) - 0.5 > dist4[3]:
+                continue
+
+            for j in range(5):
+                y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+                if abs(y - p[1]) - 0.5 > dist4[3]:
+                    continue
+
+                for i in range(-2, 3):
+                    x = n[0] + i
+                    grid = np.array([x, y, z])
+                    jitter = self.hash33(grid) - 0.5
+                    length = self.get_norm(grid + jitter - p)
+
+                    if (sorted_dist4 := self.sort4(dist4, length)) is not None:
+                        dist4 = sorted_dist4
+
+        return dist4
+
     def fdist2(self, p):
         """Compute 2D nearest neighbor distance.
             Args:
@@ -55,8 +87,9 @@ class Cellular(Noise):
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
 
-        for j in (0, 1, -1):
-            if abs((y := n[1] + j) - p[1]) - 0.5 > dist:
+        for j in range(3):
+            y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+            if abs(y - p[1]) - 0.5 > dist:
                 continue
 
             for i in range(-1, 2):
@@ -76,12 +109,14 @@ class Cellular(Noise):
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
 
-        for k in (0, 1, -1):
-            if abs((z := n[2] + k) - p[2]) - 0.5 > dist:
+        for k in range(3):
+            z = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
+            if abs(z - p[2]) - 0.5 > dist:
                 continue
 
-            for j in (0, 1, -1):
-                if abs((y := n[1] + j) - p[1]) - 0.5 > dist:
+            for j in range(3):
+                y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+                if abs(y - p[1]) - 0.5 > dist:
                     continue
 
                 for i in range(-1, 2):
@@ -129,6 +164,32 @@ class Cellular(Noise):
 
         arr = np.array(
             [self.fdist24(np.array([x + t, y + t]))[nearest - 1]
+                for y in np.linspace(0, self.grid, self.size)
+                for x in np.linspace(0, self.grid, self.size)]
+        )
+        arr = arr.reshape(self.size, self.size)
+        return arr
+
+    def cnoise2(self, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
+        t = self.mock_time() if t is None else t
+        wt = np.array([wx, wy, wz, ww])
+        self.hash = {}
+
+        arr = np.array(
+            [abs(np.dot(wt, self.fdist24(np.array([x + t, y + t]))))
+                for y in np.linspace(0, self.grid, self.size)
+                for x in np.linspace(0, self.grid, self.size)]
+        )
+        arr = arr.reshape(self.size, self.size)
+        return arr
+
+    def cnoise3(self, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
+        t = self.mock_time() if t is None else t
+        wt = np.array([wx, wy, wz, ww])
+        self.hash = {}
+
+        arr = np.array(
+            [abs(np.dot(wt, self.fdist34(np.array([x + t, y + t, t]))))
                 for y in np.linspace(0, self.grid, self.size)
                 for x in np.linspace(0, self.grid, self.size)]
         )

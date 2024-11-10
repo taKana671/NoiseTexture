@@ -1,7 +1,7 @@
 # cython: language_level=3
 
 import numpy as np
-from libc.math cimport floor
+from libc.math cimport floor, ceil
 
 from cynoise.noise cimport Noise
 
@@ -14,7 +14,7 @@ cdef class Voronoi(Noise):
     cdef list voronoi2(self, double x, double y):
         cdef:
             int i, j, ii
-            double nx, ny, length
+            double nx, ny, length, md
             double[2] grid, jitter, lattice_pt, v, h
             double[2] p = [x, y]
             double dist = 2.0 ** 0.5
@@ -22,8 +22,10 @@ cdef class Voronoi(Noise):
         nx = floor(p[0] + 0.5)
         ny = floor(p[1] + 0.5)
 
-        for j in (0, 1, -1):
-            grid[1] = ny + j
+        for j in range(3):
+            md = <double>j % 2 - 0.5
+            grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
+
             if abs(grid[1] - p[1]) - 0.5 > dist:
                 continue
 
@@ -45,7 +47,7 @@ cdef class Voronoi(Noise):
     cdef list voronoi3(self, double x, double y, double z):
         cdef:
             int i, j, k, ii
-            double nx, ny, nz, length
+            double nx, ny, nz, length, md
             double[3] grid, jitter, lattice_pt, v, h
             double[3] p = [x, y, z]
             double dist = 3.0 ** 0.5
@@ -54,13 +56,17 @@ cdef class Voronoi(Noise):
         ny = floor(p[1] + 0.5)
         nz = floor(p[2] + 0.5)
 
-        for k in (0, 1, -1):
-            grid[2] = nz + k
+        for k in range(3):
+            md = <double>k % 2 - 0.5
+            grid[2] = nz + self.sign_with_abs(&md) * ceil(k * 0.5)
+
             if abs(grid[2] - p[2]) - 0.5 > dist:
                 continue
 
-            for j in (0, 1, -1):
-                grid[1] = ny + j
+            for j in range(3):
+                md = <double>j % 2 - 0.5
+                grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
+
                 if abs(grid[1] - p[1]) - 0.5 > dist:
                     continue
 
