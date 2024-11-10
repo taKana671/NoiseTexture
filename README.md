@@ -142,6 +142,24 @@ print(reslt.best, reslt.loops, reslt.repeat)
       <td>7</td>
     </tr>
     <tr>
+      <td>Cellular.cnoise2</td>
+      <td>4.860955</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.153122</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>Cellular.cnoise3</td>
+      <td>13.82344</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.332647</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
       <td>Periodic.noise2</td>
       <td>1.494618</td>
       <td>1</td>
