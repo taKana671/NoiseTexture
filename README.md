@@ -30,7 +30,7 @@ from cynoise.perlin import Perlin
 from create_image import create_image_8bit, create_image_16bit
 
 maker = Perlin()
-arr = maker.pnoise3()
+arr = maker.noise3()
 create_image_8bit(arr)
 create_image_16bit(arr)
 
