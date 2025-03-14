@@ -9,8 +9,9 @@ class Periodic(Noise):
     """
 
     def __init__(self, period=4, grid=4, size=256):
-        super().__init__(grid, size)
         self.period = period
+        self.size = size
+        self.grid = grid
 
     def gtable2(self, lattice, p):
         lattice = lattice.astype(np.uint32)

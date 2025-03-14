@@ -6,8 +6,9 @@ from pynoise.noise import Noise
 class FractionalBrownianMotion(Noise):
 
     def __init__(self, weight=0.5, grid=4, size=256):
-        super().__init__(grid, size)
         self.weight = weight
+        self.size = size
+        self.grid = grid
 
     def vnoise2(self, p):
         n = np.floor(p)

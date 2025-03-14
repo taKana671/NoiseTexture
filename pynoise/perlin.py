@@ -6,7 +6,8 @@ from pynoise.noise import Noise
 class Perlin(Noise):
 
     def __init__(self, weight=0.5, grid=4, size=256):
-        super().__init__(grid, size)
+        self.size = size
+        self.grid = grid
         self.weight = weight
 
     def gtable2(self, lattice, p):

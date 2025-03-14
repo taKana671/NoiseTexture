@@ -10,10 +10,6 @@ UINT_MAX = np.iinfo(np.uint32).max
 
 class Noise:
 
-    def __init__(self, grid, size):
-        self.size = size
-        self.grid = grid
-
     def mock_time(self):
         return random.uniform(0, 1000)
 
@@ -101,6 +97,12 @@ class Noise:
 
     def fade(self, x):
         return 6 * x**5 - 15 * x**4 + 10 * x**3
+
+    def fract(self, p):
+        """Args:
+            p (numpy.ndarray)
+        """
+        return p - np.floor(p)
 
     def wrap(self, t=None, rot=False):
         t = self.mock_time() if t is None else t

@@ -6,7 +6,8 @@ from pynoise.noise import Noise
 class Cellular(Noise):
 
     def __init__(self, grid=4, size=256):
-        super().__init__(grid, size)
+        self.size = size
+        self.grid = grid
 
     def sort4(self, dist4, length):
 
