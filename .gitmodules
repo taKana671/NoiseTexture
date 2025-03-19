@@ -1,0 +1,3 @@
+[submodule "texture_generator"]
+	path = texture_generator
+	url = https://github.com/taKana671/texture_generator.git
