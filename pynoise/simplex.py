@@ -107,6 +107,7 @@ class Simplex(Noise):
         # perm = self.permute(perm + i[1] + np.array([0.0, i1[1], i2[1], 1.0]))
         # perm = self.permute(perm + i[0] + np.array([0.0, i1[0], i2[0], 1.0]))
 
+        # print('perm', perm)
         # Gradients: 7x7 points over a square, mapped onto an octahedron.
         # The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
         ns = (1.0 / 7.0) * d[[3, 1, 2]] - d[[0, 2, 0]]

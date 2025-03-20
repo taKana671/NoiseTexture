@@ -1,4 +1,5 @@
 import random
+from functools import wraps
 
 import numpy as np
 
@@ -6,6 +7,26 @@ import numpy as np
 k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint32)
 u = np.array([1, 2, 3], dtype=np.uint32)
 UINT_MAX = np.iinfo(np.uint32).max
+
+
+def cache(max_length):
+    def decoration(func):
+        dic = {}
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if len(dic) > max_length:
+                dic.clear()
+
+            if (key := tuple(args[1])) in dic:
+                return dic[key]
+
+            ret = func(*args, **kwargs)
+            dic[key] = ret
+            return ret
+
+        return wrapper
+    return decoration
 
 
 class Noise:
@@ -34,15 +55,28 @@ class Noise:
         n ^= n[[1, 2, 0]] << u
         n *= k
 
+    @cache(128)
     def hash21(self, p):
         n = p.astype(np.uint32)
 
-        if (key := tuple(n)) in self.hash:
-            return self.hash[key]
+        # if (key := tuple(n)) in self.hash:
+        #     return self.hash[key]
 
         self.uhash22(n)
         h = n[0] / UINT_MAX
-        self.hash[key] = h
+        # self.hash[key] = h
+        return h
+
+    @cache(128)
+    def hash31(self, p):
+        n = p.astype(np.uint32)
+
+        # if (key := tuple(n)) in self.hash:
+        #     return self.hash[key]
+
+        self.uhash33(n)
+        h = n[0] / UINT_MAX
+        # self.hash[key] = h
         return h
 
     def hash22(self, p):
@@ -70,10 +104,22 @@ class Noise:
     def mix(self, x, y, a):
         return x + (y - x) * a
 
-    def step(self, a, x):
-        if x <= a:
+    def step(self, edge, x):
+        """Args:
+            edge (float): the location of the edge of the step function.
+            x (float): the value to be used to generate the step function.
+        """
+        if x < edge:
             return 0
         return 1
+
+    def step_arr(self, edge_arr, x_arr):
+        """Args:
+            edge_arr and x_arr must have the same length.
+            edge_arr (numpy.ndarray, list, tuple)
+            x_arr (numpy.ndarray, list, tuple)
+        """
+        return np.array([self.step(edge, x) for edge, x in zip(edge_arr, x_arr)])
 
     def smoothstep(self, edge0, edge1, x):
         """Args:
@@ -95,6 +141,9 @@ class Noise:
     def get_norm(self, vec):
         return sum(v ** 2 for v in vec) ** 0.5
 
+    def hermite_interpolation(self, p):
+        return 3 * p**2 - 2 * p**3
+
     def fade(self, x):
         return 6 * x**5 - 15 * x**4 + 10 * x**3
 
@@ -102,7 +151,19 @@ class Noise:
         """Args:
             p (numpy.ndarray)
         """
+        # ★★★★　　f, _ = np.modf(p)で代用できるから不要　　★★★★★
         return p - np.floor(p)
+
+    def clamp(self, x, min_val, max_val):
+        """Args:
+            x (float): the value to constrain.
+            min_val (float): the lower end of the range into which to constrain x.
+            max_val (float): the upper end of the range into which to constrain x.
+        """
+        return min(max(x, min_val), max_val)
+
+    def clamp_arr(self, x_arr, min_val, max_val):
+        return np.array([self.clamp(x, min_val, max_val) for x in x_arr])
 
     def wrap(self, t=None, rot=False):
         t = self.mock_time() if t is None else t

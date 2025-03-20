@@ -89,6 +89,30 @@ class Perlin(Noise):
         arr = arr.reshape(self.size, self.size)
         return arr
 
+    # def fbm2(self, p):
+    #     v = 0.0
+    #     amp = 1.0
+    #     freq = 1.0
+
+    #     for _ in range(4):
+    #         v += amp * (self.pnoise3(freq * p) - 0.5)
+    #         amp *= 0.5
+    #         freq *= 2.011
+
+    #     return 0.5 * v + 0.5
+
+    # def noise2(self, t=None):
+    #     t = self.mock_time() if t is None else t
+    #     self.hash = {}
+
+    #     arr = np.array(
+    #         [self.fbm2(np.array([x, y]) + t)
+    #             for y in np.linspace(0, self.grid, self.size)
+    #             for x in np.linspace(0, self.grid, self.size)]
+    #     )
+    #     arr = arr.reshape(self.size, self.size)
+    #     return arr
+
     def noise3(self, t=None):
         t = self.mock_time() if t is None else t
         self.hash = {}
@@ -100,6 +124,18 @@ class Perlin(Noise):
         )
         arr = arr.reshape(self.size, self.size)
         return arr
+
+    # def noise3(self, t=None):
+    #     t = self.mock_time() if t is None else t
+    #     self.hash = {}
+
+    #     arr = np.array(
+    #         [self.fbm2(np.array([x + t, y + t, t]))
+    #             for y in np.linspace(0, self.grid, self.size)
+    #             for x in np.linspace(0, self.grid, self.size)]
+    #     )
+    #     arr = arr.reshape(self.size, self.size)
+    #     return arr
 
     def wrap2(self, x, y, rot=False):
         v = 0.0
