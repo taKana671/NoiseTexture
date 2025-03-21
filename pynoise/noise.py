@@ -58,47 +58,33 @@ class Noise:
     @cache(128)
     def hash21(self, p):
         n = p.astype(np.uint32)
-
-        # if (key := tuple(n)) in self.hash:
-        #     return self.hash[key]
-
         self.uhash22(n)
         h = n[0] / UINT_MAX
-        # self.hash[key] = h
+
         return h
 
     @cache(128)
     def hash31(self, p):
         n = p.astype(np.uint32)
-
-        # if (key := tuple(n)) in self.hash:
-        #     return self.hash[key]
-
         self.uhash33(n)
         h = n[0] / UINT_MAX
-        # self.hash[key] = h
+
         return h
 
+    @cache(128)
     def hash22(self, p):
         n = p.astype(np.uint32)
-
-        if (key := tuple(n)) in self.hash:
-            return self.hash[key]
-
         self.uhash22(n)
         h = n / UINT_MAX
-        self.hash[key] = h
+
         return h
 
+    @cache(128)
     def hash33(self, p):
         n = p.astype(np.uint32)
-
-        if (key := tuple(n)) in self.hash:
-            return self.hash[key]
-
         self.uhash33(n)
         h = n / UINT_MAX
-        self.hash[key] = h
+
         return h
 
     def mix(self, x, y, a):
@@ -144,15 +130,8 @@ class Noise:
     def hermite_interpolation(self, p):
         return 3 * p**2 - 2 * p**3
 
-    def fade(self, x):
+    def quintic_hermite_interpolation(self, x):
         return 6 * x**5 - 15 * x**4 + 10 * x**3
-
-    def fract(self, p):
-        """Args:
-            p (numpy.ndarray)
-        """
-        # ★★★★　　f, _ = np.modf(p)で代用できるから不要　　★★★★★
-        return p - np.floor(p)
 
     def clamp(self, x, min_val, max_val):
         """Args:
@@ -164,15 +143,3 @@ class Noise:
 
     def clamp_arr(self, x_arr, min_val, max_val):
         return np.array([self.clamp(x, min_val, max_val) for x in x_arr])
-
-    def wrap(self, t=None, rot=False):
-        t = self.mock_time() if t is None else t
-        self.hash = {}
-
-        arr = np.array(
-            [self.wrap2(x + t, y + t, rot)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
-        )
-        arr = arr.reshape(self.size, self.size)
-        return arr

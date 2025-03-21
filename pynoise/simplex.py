@@ -1,20 +1,11 @@
-import cv2
+# import cv2
 import numpy as np
 
 from pynoise.noise import Noise
+from pynoise.fBm import Fractal
 
 
-class Simplex(Noise):
-
-    # def __init__(self, weight=0.5, lacunarity=2.01, octaves=4,
-    #              width=256, height=256, space_scale=20):
-    # def __init__(self, width=256, height=256, space_scale=20):
-    #     # self.weight = weight
-    #     # self.lacunarity = lacunarity
-    #     # self.octaves = octaves
-    #     self.scale = space_scale
-    #     self.width = width
-    #     self.height = height
+class SimplexNoise(Noise):
 
     def mod289(self, p):
         return p - np.floor(p * (1.0 / 289.0)) * 289.0
@@ -54,16 +45,14 @@ class Simplex(Noise):
         for idx in range(1, -1, -1):
             perm = self.permute(perm + i[idx] + np.array([0.0, i1[idx], 1.0]))
 
-        # perm = self.permute(i[1] + np.array([0.0, i1[1], 1.0]))
-        # perm = self.permute(perm + i[0] + np.array([0.0, i1[0], 1.0]))
-
         v = np.array([np.dot(c, c) for c in (x0, x1, x2)])
         m = np.maximum(0.5 - v, 0.0)
         m = m ** 4
 
         # Gradients: 41 pts uniformly over a line, mapped onto a diamond
         # The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
-        x = 2.0 * self.fract(perm * np.repeat(grid[3], 3)) - 1.0
+        f, _ = np.modf(perm * np.repeat(grid[3], 3))
+        x = 2.0 * f - 1.0
         h = np.abs(x) - 0.5
         ox = np.floor(x + 0.5)
         a0 = x - ox
@@ -103,11 +92,6 @@ class Simplex(Noise):
         for idx in range(2, -1, -1):
             perm = self.permute(perm + i[idx] + np.array([0.0, i1[idx], i2[idx], 1.0]))
 
-        # perm = self.permute(i[2] + np.array([0.0, i1[2], i2[2], 1.0]))
-        # perm = self.permute(perm + i[1] + np.array([0.0, i1[1], i2[1], 1.0]))
-        # perm = self.permute(perm + i[0] + np.array([0.0, i1[0], i2[0], 1.0]))
-
-        # print('perm', perm)
         # Gradients: 7x7 points over a square, mapped onto an octahedron.
         # The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
         ns = (1.0 / 7.0) * d[[3, 1, 2]] - d[[0, 2, 0]]
@@ -145,37 +129,13 @@ class Simplex(Noise):
 
         arr = np.array([np.dot(co, co) for co in corners])
         m = np.maximum(0.6 - arr, 0)
-        # m = m ** 4
 
         arr = np.array([np.dot(pt, co) for pt, co in zip(pts, corners)])
-        # return 42.0 * np.dot(m, arr) * 0.5 + 0.5
         return 42.0 * np.dot(m ** 4, arr) * 0.5 + 0.5
-
-    # def fractal(self, noise, p):
-    #     """Args:
-    #         noise (callable): a function to generate noise.
-    #         p (Numpy.ndarary): point
-    #     """
-    #     v = 0.0
-    #     amp = 1.0
-    #     freq = 1.0
-
-    #     for _ in range(self.octaves):
-    #         v += amp * (noise(freq * p) - 0.5)
-    #         amp *= self.weight
-    #         freq *= self.lacunarity
-
-    #     return 0.5 * v + 0.5
 
     def noise2(self, width=256, height=256, scale=20, t=None):
         t = self.mock_time() if t is None else t
-        m = min(self.width, self.height)
-
-        # arr = np.array(
-        #     [self.snoise2((np.array([x + t, y + t]) / m) * self.scale)
-        #         for y in range(self.height)
-        #         for x in range(self.width)]
-        # )
+        m = min(width, height)
 
         arr = np.array(
             [self.snoise2((np.array([x, y]) / m + t) * scale)
@@ -183,42 +143,48 @@ class Simplex(Noise):
                 for x in range(width)]
         )
 
-        arr = arr.reshape(self.height, self.width)
-        # arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
-        # cv2.imwrite('simplex.png', arr)
+        arr = arr.reshape(height, width)
         return arr
 
     def noise3(self, width=256, height=256, scale=20, t=None):
         t = self.mock_time() if t is None else t
-        m = min(self.width, self.height)
+        m = min(width, height)
 
-        # arr = np.array(
-        #     [self.snoise3((np.array([x / m, y / m, t])) * self.scale)
-        #         for y in range(self.height)
-        #         for x in range(self.width)]
-        # )
         arr = np.array(
             [self.snoise3((np.array([x / m + t, y / m + t, t])) * scale)
                 for y in range(height)
                 for x in range(width)]
         )
 
-        arr = arr.reshape(self.height, self.width)
-        # arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
-        # cv2.imwrite('simplex.png', arr)
+        arr = arr.reshape(height, width)
         return arr
 
-    # def noise3_fractal(self, t=None):
-    #     t = self.mock_time() if t is None else t
-    #     m = min(self.width, self.height)
+    def fractal2(self, width=256, height=256, t=None,
+                 gain=0.5, lacunarity=2.01, octaves=4):
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
 
-    #     arr = np.array(
-    #         [self.fractal((np.array([x / m, y / m, t])) * self.scale)
-    #             for y in range(self.height)
-    #             for x in range(self.width)]
-    #     )
+        noise = Fractal(self.snoise2)
 
-    #     arr = arr.reshape(self.height, self.width)
-    #     # arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
-    #     # cv2.imwrite('simplex.png', arr)
-    #     return arr
+        arr = np.array(
+            [noise.fractal((np.array([x, y]) / m + t))
+             for y in range(height) for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
+    def fractal3(self, width=256, height=256, t=None,
+                 gain=0.5, lacunarity=2.01, octaves=4):
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+
+        noise = Fractal(self.snoise3)
+
+        arr = np.array(
+            [noise.fractal(np.array([x / m + t, y / m + t, t]))
+             for y in range(height) for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
