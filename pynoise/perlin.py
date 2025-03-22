@@ -2,7 +2,7 @@ import numpy as np
 
 from .fBm import Fractal
 from .warping import DomainWarping
-from pynoise.noise import Noise, cache
+from .noise import Noise, cache
 
 
 class PerlinNoise(Noise):

@@ -2,7 +2,7 @@ import numpy as np
 
 from .fBm import Fractal
 from .warping import DomainWarping
-from pynoise.noise import Noise
+from .noise import Noise
 
 
 class ValueNoise(Noise):
@@ -87,7 +87,7 @@ class ValueNoise(Noise):
         arr = arr.reshape(size, size)
         return arr
 
-    def fractal2(self, size=256, grid=4, gain=0.5, t=None, lacunarity=2.01, octaves=4):
+    def fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
         noise = Fractal(self.vnoise2, gain, lacunarity, octaves)
 

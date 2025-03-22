@@ -1,6 +1,6 @@
 import numpy as np
 
-from pynoise.noise import Noise
+from .noise import Noise
 
 
 class CellularNoise(Noise):

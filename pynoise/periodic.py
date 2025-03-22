@@ -1,6 +1,6 @@
 import numpy as np
 
-from pynoise.noise import Noise, cache
+from .noise import Noise, cache
 
 
 class PeriodicNoise(Noise):

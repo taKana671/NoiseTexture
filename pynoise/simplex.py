@@ -1,8 +1,8 @@
 # import cv2
 import numpy as np
 
-from pynoise.noise import Noise
-from pynoise.fBm import Fractal
+from .noise import Noise
+from .fBm import Fractal
 
 
 class SimplexNoise(Noise):
