@@ -36,6 +36,21 @@ extensions = [
         'periodic',
         ['cynoise/periodic.pyx'],
         include_dirs=[numpy.get_include()]
+    ),
+    Extension(
+        'simplex',
+        ['cynoise/simplex.pyx'],
+        include_dirs=[numpy.get_include()]
+    ),
+    Extension(
+        'value',
+        ['cynoise/value.pyx'],
+        include_dirs=[numpy.get_include()]
+    ),
+    Extension(
+        'warping',
+        ['cynoise/warping.pyx'],
+        include_dirs=[numpy.get_include()]
     )
 ]
 

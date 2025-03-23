@@ -109,7 +109,10 @@ cdef class Noise:
         for i in range(3):
             h[0][i] = <double>n[i] / uint_max
 
-    cdef double fade(self, double x):
+    cdef hermite_interpolation(self, double x):
+        return 3 * x**2 - 2 * x**3
+
+    cdef double quintic_hermite_interpolation(self, double x):
         return 6 * x**5 - 15 * x**4 + 10 * x**3
 
     cdef double mix(self, double x, double y, double a):

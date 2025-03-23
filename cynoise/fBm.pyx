@@ -1,83 +1,92 @@
 # cython: language_level=3
 
-import numpy as np
-cimport numpy as cnp
-from libc.math cimport floor, cos, sin, pi
 
-from cynoise.noise cimport Noise
+ctypedef double (*noise_gen2) (double, double)
+ctypedef double (*noise_gen3) (double, double, double)
 
 
-cdef class FractionalBrownianMotion(Noise):
+cdef class Fractal:
 
     cdef:
-        double weight
+        # noise_gen2 noise_func 
+        double gain
+        double lacunarity
+        int octaves
+        
 
-    def __init__(self, weight=0.5, grid=4, size=256):
-        super().__init__(grid, size)
-        self.weight = weight
+    # def __init__(self, noise_func, gain=0.5, lacunarity=2.01, octaves=4):
+    def __init__(self, gain, lacunarity, octaves):
+        # self.noise = noise_func
+        self.gain = gain
+        self.lacunarity = lacunarity
+        self.octaves = octaves
 
-    cdef double vnoise2(self, double x, double y):
-        cdef:
-            unsigned int i, j
-            double[2] arr
-            double fx, fy, ret, nx, ny, w0, w1
-            double[4] v
+    # def fractal(self, p):
+    #     """Args:
+    #         p (numpy.ndarray)
+    #     """
+    #     v = 0.0
+    #     amp = 1.0          # amplitude: the highest deviation of the wave from its central or zero position
+    #     freq = 1.0         # frequency: the number of waves that pass a fixed point in unit time
 
-        nx = floor(x)
-        ny = floor(y)
-        fx = x - nx
-        fy = y - ny
+    #     for _ in range(self.octaves):
+    #         v += amp * (self.noise(freq * p) - 0.5)
+    #         amp *= self.gain
+    #         freq *= self.lacunarity
 
-        for j in range(2):
-            arr[1] = ny + j
+    #     return 0.5 * v + 0.5
 
-            for i in range(2):
-                arr[0] = nx + i
-                v[i + 2 * j] = self.hash21(&arr)
 
-        fx = self.fade(fx)
-        fy = self.fade(fy)
-        w0 = self.mix(v[0], v[1], fx)
-        w1 = self.mix(v[2], v[3], fx)
 
-        return self.mix(w0, w1, fy)
+cdef class Fractal2:
 
-    cdef double fbm2(self, double x, double y):
+    cdef:
+        noise_gen2 noise_func 
+
+    def __init__(self, noise_func, gain=0.5, lacunarity=2.01, octaves=4):
+        super().__init__(gain, lacunarity, octaves)
+        self.noise = noise_func
+
+    cdef double fractal2(self, double x, double y):
         cdef:
             double v = 0.0
             double amp = 1.0
             double freq = 1.0
-            double freq_w = 2.011
 
-        for _ in range(4):
-            v += amp * (self.vnoise2(freq * x, freq * y) - 0.5)
-            amp *= self.weight
-            freq *= freq_w
+        for _ in range(self.octaves):
+            v += amp * (self.noise(freq * x, freq * y) - 0.5)
+            amp *= self.gain
+            freq *= self.lacunarity
 
         return 0.5 * v + 0.5
 
-    cpdef noise2(self, t=None):
-        t = self.mock_time() if t is None else float(t)
+    
+    cpdef double fractal(self, double x, double y):
+        return self.fractal2(x, y)
 
-        arr = np.array(
-            [self.fbm2(x + t, y + t)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
-        )
 
-        arr = arr.reshape(self.size, self.size)
-        return arr
+cdef class Fractal3:
 
-    cdef double wrap2(self, double x, double y, bint rot=False):
+    cdef:
+        noise_gen3 noise_func 
+
+    def __init__(self, noise_func, gain=0.5, lacunarity=2.01, octaves=4):
+        super().__init__(gain, lacunarity, octaves)
+        self.noise = noise_func
+
+    cdef double fractal3(self, double x, double y, double z):
         cdef:
             double v = 0.0
-            double cx, cy
+            double amp = 1.0
+            double freq = 1.0
 
-        for i in range(4):
-            cx = cos(2 * pi * v) if rot else v
-            sy = sin(2 * pi * v) if rot else v
-            x += self.weight * cx
-            y += self.weight * sy
-            v = self.fbm2(x, y)
+        for _ in range(self.octaves):
+            v += amp * (self.noise(freq * x, freq * y, freq * z) - 0.5)
+            amp *= self.gain
+            freq *= self.lacunarity
 
-        return v
+        return 0.5 * v + 0.5
+
+    
+    cpdef double fractal(self, double x, double y, double z):
+        return self.fractal3(x, y, z)

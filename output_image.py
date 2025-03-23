@@ -22,15 +22,15 @@ def output(arr, stem, parent='.', ext='png', with_suffix=True):
     cv2.imwrite(file_path, arr)
 
 
-def output_noise_8bit(arr, ext='png'):
+def output_image_8bit(arr):
     now = datetime.now()
-    file_name = f'img8_{now.strftime("%Y%m%d%H%M%S")}.{ext}'
+    file_name = f'img8_{now.strftime("%Y%m%d%H%M%S")}.png'
 
     arr = np.clip(arr * 255, a_min=0, a_max=255).astype(np.uint8)
     cv2.imwrite(file_name, arr)
 
 
-def output_noise_16bit(arr):
+def output_image_16bit(arr):
     now = datetime.now()
     file_name = f'img16_{now.strftime("%Y%m%d%H%M%S")}.png'
 
@@ -42,4 +42,4 @@ if __name__ == '__main__':
     from pynoise.cellular import Cellular
     maker = Cellular()
     arr = maker.noise3()
-    output_noise_8bit(arr)
+    output_image_8bit(arr)
