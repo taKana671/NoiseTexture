@@ -4,8 +4,6 @@
 cdef class Noise:
 
     cdef:
-        int grid
-        int size
         unsigned int[3] k
         unsigned int[3] u
 
@@ -21,7 +19,9 @@ cdef class Noise:
 
     cdef void hash33(self, double[3] *p, double[3] *h)
 
-    cdef double fade(self, double x)
+    cdef double hermite_interpolation(self, double x)
+
+    cdef double quintic_hermite_interpolation(self, double x)
 
     cdef double mix(self, double x, double y, double a)
 
@@ -34,10 +34,5 @@ cdef class Noise:
     cdef double sign_with_abs(self, double *x)
 
     cdef (double, double) xy2pol(self, double x, double y)
-
-    cdef double wrap2(self, double x, double y, bint rot=*)
-
-    cpdef wrap(self, rot=*, t=*)
-
 
 

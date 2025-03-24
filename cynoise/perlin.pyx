@@ -1,16 +1,15 @@
 # cython: language_level=3
 
-import math
 import numpy as np
 cimport numpy as cnp
 from libc.math cimport floor, cos, sin, pi
 
-from .fBm import Fractal
-from .noise cimport Noise
-from .warping import DomainWarping
+from cynoise.fBm cimport Fractal2D
+from cynoise.noise cimport Noise
+from cynoise.warping cimport DomainWarping2D
 
 
-cdef class Perlin(Noise):
+cdef class PerlinNoise(Noise):
     
     cdef double gtable2(self, double[2] *lattice, double[2] *p):
         cdef:
@@ -143,10 +142,10 @@ cdef class Perlin(Noise):
 
     cpdef fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal(self.pnoise2, gain, lacunarity, octaves)
+        noise = Fractal2D(self.pnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
-            [noise.fractal(np.array([x, y]) + t)
+            [noise.fractal2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -155,11 +154,11 @@ cdef class Perlin(Noise):
 
     cpdef warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal(self.pnoise2)
-        warp = DomainWarping(noise.fractal, weight, octaves)
+        noise = Fractal2D(self.pnoise2)
+        warp = DomainWarping2D(noise.fractal2, weight=weight, octaves=octaves)
 
         arr = np.array(
-            [warp.warp2_rot(np.array([x, y]) + t)
+            [warp.warp2_rot(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -170,11 +169,11 @@ cdef class Perlin(Noise):
     cpdef warp2(self, size=256, grid=4, t=None, octaves=4):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
-        noise = Fractal(self.pnoise2)
-        warp = DomainWarping(noise.fractal, weight=weight)
+        noise = Fractal2D(self.pnoise2)
+        warp = DomainWarping2D(noise.fractal2, weight=weight, octaves=octaves)
 
         arr = np.array(
-            [warp.warp(np.array([x, y]))
+            [warp.warp2(x, y)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )

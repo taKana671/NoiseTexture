@@ -10,10 +10,7 @@ from libc.math cimport atan2, cos, sin, pi
 
 cdef class Noise:
 
-    def __init__(self, grid, size):
-        self.size = size
-        self.grid = grid
-
+    def __init__(self):
         self.k = [1164413355, 1737075525, 2309703015]
         self.u = [1, 2, 3]
 
@@ -109,7 +106,7 @@ cdef class Noise:
         for i in range(3):
             h[0][i] = <double>n[i] / uint_max
 
-    cdef hermite_interpolation(self, double x):
+    cdef double hermite_interpolation(self, double x):
         return 3 * x**2 - 2 * x**3
 
     cdef double quintic_hermite_interpolation(self, double x):
@@ -156,17 +153,3 @@ cdef class Noise:
 
     cdef double get_norm2(self, double[2] *v):
         return (v[0][0] ** 2 + v[0][1] ** 2) ** 0.5
-
-    cpdef wrap(self, rot=False, t=None):
-        t = self.mock_time() if t is None else float(t)
-
-        arr = np.array(
-            [self.wrap2(x + t, y + t, rot)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
-        )
-        arr = arr.reshape(self.size, self.size)
-        return arr
-
-    cdef double wrap2(self, double x, double y, bint rot=False):
-        pass
