@@ -11,7 +11,7 @@ from cynoise.warping cimport DomainWarping2D
 
 cdef class PerlinNoise(Noise):
     
-    cdef double gtable2(self, double[2] *lattice, double[2] *p):
+    cdef double _gtable2(self, double[2] *lattice, double[2] *p):
         cdef:
             unsigned int idx, i
             double u, v, _u, _v
@@ -30,7 +30,7 @@ cdef class PerlinNoise(Noise):
 
         return _u + _v
 
-    cdef double gtable3(self, double[3] *lattice, double[3] *p):
+    cdef double _gtable3(self, double[3] *lattice, double[3] *p):
         cdef:
             unsigned int idx, i
             double u, v, _u, _v
@@ -55,7 +55,7 @@ cdef class PerlinNoise(Noise):
 
         return _u + _v
 
-    cdef double pnoise2(self, double x, double y):
+    cdef double _pnoise2(self, double x, double y):
         cdef:
             double nx, ny, fx, fy, w0, w1
             unsigned int i, j
@@ -74,7 +74,7 @@ cdef class PerlinNoise(Noise):
             for i in range(2):
                 arr_n[0] = nx + i
                 arr_f[0] = fx - i
-                v[i + 2 * j] = self.gtable2(&arr_n, &arr_f)
+                v[i + 2 * j] = self._gtable2(&arr_n, &arr_f)
 
         fx = self.quintic_hermite_interpolation(fx)
         fy = self.quintic_hermite_interpolation(fy)
@@ -83,7 +83,7 @@ cdef class PerlinNoise(Noise):
 
         return 0.5 * self.mix(w0, w1, fy) + 0.5
 
-    cdef double pnoise3(self, double x, double y, double z):
+    cdef double _pnoise3(self, double x, double y, double z):
         cdef:
             double fx, fy, fz, nx, ny, nz, w0, w1
             unsigned int i, j, k
@@ -108,7 +108,7 @@ cdef class PerlinNoise(Noise):
                 for i in range(2):
                     arr_n[0] = nx + i
                     arr_f[0] = fx - i
-                    v[i + 2 * j + 4 * k] = self.gtable3(&arr_n, &arr_f) * 0.70710678
+                    v[i + 2 * j + 4 * k] = self._gtable3(&arr_n, &arr_f) * 0.70710678
 
         fx = self.quintic_hermite_interpolation(fx)
         fy = self.quintic_hermite_interpolation(fy)
@@ -118,11 +118,17 @@ cdef class PerlinNoise(Noise):
 
         return 0.5 * self.mix(w0, w1, fz) + 0.5
 
+    cpdef double pnoise3(self, double x, double y, double z):
+        return self._pnoise3(x, y, z)
+
+    cpdef double pnoise2(self, double x, double y):
+        return self._pnoise2(x, y)
+
     cpdef noise2(self, grid=4, size=256, t=None):
         t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
-            [self.pnoise2(x + t, y + t)
+            [self._pnoise2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -133,7 +139,7 @@ cdef class PerlinNoise(Noise):
         t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
-            [self.pnoise3(x + t, y + t, t)
+            [self._pnoise3(x + t, y + t, t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -142,7 +148,7 @@ cdef class PerlinNoise(Noise):
 
     cpdef fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal2D(self.pnoise2, gain, lacunarity, octaves)
+        noise = Fractal2D(self._pnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
             [noise.fractal2(x + t, y + t)
@@ -154,7 +160,7 @@ cdef class PerlinNoise(Noise):
 
     cpdef warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal2D(self.pnoise2)
+        noise = Fractal2D(self._pnoise2)
         warp = DomainWarping2D(noise.fractal2, weight=weight, octaves=octaves)
 
         arr = np.array(
@@ -169,7 +175,7 @@ cdef class PerlinNoise(Noise):
     cpdef warp2(self, size=256, grid=4, t=None, octaves=4):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
-        noise = Fractal2D(self.pnoise2)
+        noise = Fractal2D(self._pnoise2)
         warp = DomainWarping2D(noise.fractal2, weight=weight, octaves=octaves)
 
         arr = np.array(

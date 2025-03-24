@@ -33,9 +33,6 @@ cdef class DomainWarping2D(Warping):
             yy = sin(2.0 * pi * v)
             v = self.noise(x + self.weight * xx, y + self.weight * yy)
 
-            # arr = np.array([np.cos(2 * np.pi * v), np.sin(2 * np.pi * v)])
-            # v = self.noise(p + self.weight * arr)
-
         return v
 
     cpdef double warp(self, double x, double y):
