@@ -6,6 +6,7 @@ cdef class Noise:
     cdef:
         unsigned int[3] k
         unsigned int[3] u
+        unsigned int uint_max
 
     cdef unsigned int uhash11(self, unsigned int n)
 
@@ -14,6 +15,8 @@ cdef class Noise:
     cdef void uhash33(self, unsigned int[3] *n)
 
     cdef double hash21(self, double[2] *p)
+
+    cdef double hash31(self, double[3] *p)
 
     cdef void hash22(self, double[2] *p, double[2] *h)
 
@@ -36,4 +39,8 @@ cdef class Noise:
     cdef (double, double) xy2pol(self, double x, double y)
 
     cdef double mod(self, double x, double y)
+
+    cdef double inner_product2(self, double[2] *p1, double[2] *p2)
+
+    cdef double inner_product3(self, double[3] *p1, double[3] *p2)
 
