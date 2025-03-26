@@ -60,7 +60,8 @@ class PerlinNoise(Noise):
             p (numpy.ndarray): 2-dimensional array
         """
         n = np.floor(p)
-        f, _ = np.modf(p)
+        f = p - n
+        # f, _ = np.modf(p)
 
         v = [self.gtable2(n + (arr := np.array([i, j])), f - arr)
              for j in range(2) for i in range(2)]
@@ -75,7 +76,8 @@ class PerlinNoise(Noise):
             p (numpy.ndarray): 3-dimensional array
         """
         n = np.floor(p)
-        f, _ = np.modf(p)
+        f = p - n
+        # f, _ = np.modf(p)
 
         # 0.70710678 = 1 / sqrt(2)
         v = [self.gtable3(n + (arr := np.array([i, j, k])), f - arr) * 0.70710678
@@ -86,7 +88,7 @@ class PerlinNoise(Noise):
         w1 = self.mix(self.mix(v[4], v[5], f[0]), self.mix(v[6], v[7], f[0]), f[1])
         return 0.5 * self.mix(w0, w1, f[2]) + 0.5
 
-    def noise2(self, grid=4, size=256, t=None):
+    def noise2(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -97,7 +99,7 @@ class PerlinNoise(Noise):
         arr = arr.reshape(size, size)
         return arr
 
-    def noise3(self, grid=4, size=256, t=None):
+    def noise3(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -126,7 +128,7 @@ class PerlinNoise(Noise):
         warp = DomainWarping(noise.fractal, weight, octaves)
 
         arr = np.array(
-            [warp.warp2_rot(np.array([x, y]) + t)
+            [warp.warp_rot(np.array([x, y]) + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )

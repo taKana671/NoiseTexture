@@ -1,7 +1,7 @@
 # cython: language_level=3
 
 import numpy as np
-cimport numpy as cnp
+# cimport numpy as cnp
 from libc.math cimport floor, cos, sin, pi
 
 from cynoise.fBm cimport Fractal2D
@@ -124,7 +124,7 @@ cdef class PerlinNoise(Noise):
     cpdef double pnoise2(self, double x, double y):
         return self._pnoise2(x, y)
 
-    cpdef noise2(self, grid=4, size=256, t=None):
+    cpdef noise2(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
@@ -135,7 +135,7 @@ cdef class PerlinNoise(Noise):
         arr = arr.reshape(size, size)
         return arr
 
-    cpdef noise3(self, grid=4, size=256, t=None):
+    cpdef noise3(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else float(t)
 
         arr = np.array(

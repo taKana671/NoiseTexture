@@ -3,26 +3,29 @@
 import random
 
 import cython
+# cimport numpy as np
 import numpy as np
-cimport numpy as cnp
-from libc.math cimport atan2, cos, sin, pi
+from libc.math cimport atan2, cos, sin, pi, floor
 
 
 cdef class Noise:
 
     def __init__(self):
-        self.k = [1164413355, 1737075525, 2309703015]
+        # self.k = [1164413355, 1737075525, 2309703015]
+        self.k = [0x456789abu, 0x6789ab45u, 0x89ab4567u]
         self.u = [1, 2, 3]
 
     def mock_time(self):
         return random.uniform(0, 1000)
 
-    cdef void uhash11(self, unsigned int *n):
-        n[0] ^= n[0] << self.u[0]
-        n[0] ^= n[0] >> self.u[0]
-        n[0] *= self.k[0]
-        n[0] ^= n[0] << self.u[0]
-        n[0] *= self.k[0]
+    cdef unsigned int uhash11(self, unsigned int n):
+        # I did not know why, using array pointers made all return values 0.
+        n ^= (n << 1)
+        n ^= (n >> 1)
+        n *= 0x456789abu
+        n ^= (n << 1)
+        n *= 0x456789abu
+        return n
 
     cdef void uhash22(self, unsigned int[2] *n):
         n[0][0] ^= n[0][1] << self.u[0]
@@ -142,7 +145,7 @@ cdef class Noise:
         r = (x ** 2 + y ** 2) ** 0.5
 
         if x == 0:
-            px = self.sign_with_abs(&y) * pi / 2
+            px = self.sign_with_abs(&y) * pi / 2.0
         else:
             px = atan2(y, x)
 
@@ -153,3 +156,7 @@ cdef class Noise:
 
     cdef double get_norm2(self, double[2] *v):
         return (v[0][0] ** 2 + v[0][1] ** 2) ** 0.5
+
+    @cython.cdivision(True)
+    cdef double mod(self, double x, double y):
+        return x - y * floor(x / y)

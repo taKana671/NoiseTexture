@@ -58,7 +58,7 @@ class VoronoiNoise(Noise):
 
         return self.hash33(lattice_pt)
 
-    def noise3(self, grid=4, size=256, gray=True, t=None):
+    def noise3(self, size=256, grid=4, gray=True, t=None):
         t = self.mock_time() if t is None else t
 
         if gray:
@@ -79,7 +79,7 @@ class VoronoiNoise(Noise):
 
         return arr
 
-    def noise2(self, grid=4, size=256, gray=True, t=None):
+    def noise2(self, size=256, grid=4, gray=True, t=None):
         t = self.mock_time() if t is None else t
 
         if gray:

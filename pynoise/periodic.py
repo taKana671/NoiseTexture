@@ -50,7 +50,7 @@ class PeriodicNoise(Noise):
 
         return _u + _v
 
-    def change_coord(self, x, y, grid, t):
+    def change_coord(self, x, y, t, grid):
         half_grid = grid / 2
         half_period = self.period / 2
 
@@ -60,11 +60,13 @@ class PeriodicNoise(Noise):
 
         return hx, hy
 
-    def periodic2(self, x, y, grid, t):
-        hx, hy = self.change_coord(x, y, grid, t)
+    def periodic2(self, x, y, t, grid):
+        hx, hy = self.change_coord(x, y, t, grid)
         p = np.array([hx + t, hy + t])
+
         n = np.floor(p)
-        f, _ = np.modf(p)
+        f = p - n
+        # f, _ = np.modf(p)
 
         v = [self.gtable2(np.mod(n + (arr := np.array([i, j])), self.period), f - arr)
              for j in range(2) for i in range(2)]
@@ -75,11 +77,12 @@ class PeriodicNoise(Noise):
 
         return 0.5 * self.mix(w0, w1, f[1]) + 0.5
 
-    def periodic3(self, x, y, grid, t):
-        hx, hy = self.change_coord(x, y, grid, t)
+    def periodic3(self, x, y, t, grid):
+        hx, hy = self.change_coord(x, y, t, grid)
         p = np.array([hx + t, hy + t, t])
         n = np.floor(p)
-        f, _ = np.modf(p)
+        f = p - n
+        # f, _ = np.modf(p)
 
         v = [self.gtable3(np.mod(n + (arr := np.array([i, j, k])), self.period), f - arr) * 0.70710678
              for k in range(2) for j in range(2) for i in range(2)]
@@ -94,7 +97,7 @@ class PeriodicNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.periodic2(x, y, grid, t)
+            [self.periodic2(x, y, t, grid)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -106,7 +109,7 @@ class PeriodicNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.periodic3(x, y, grid, t)
+            [self.periodic3(x, y, t, grid)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )

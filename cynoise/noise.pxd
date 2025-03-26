@@ -7,7 +7,7 @@ cdef class Noise:
         unsigned int[3] k
         unsigned int[3] u
 
-    cdef void uhash11(self, unsigned int *n)
+    cdef unsigned int uhash11(self, unsigned int n)
 
     cdef void uhash22(self, unsigned int[2] *n)
 
@@ -35,4 +35,5 @@ cdef class Noise:
 
     cdef (double, double) xy2pol(self, double x, double y)
 
+    cdef double mod(self, double x, double y)
 
