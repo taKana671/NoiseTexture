@@ -151,7 +151,7 @@ cdef class PerlinNoise(Noise):
         noise = Fractal2D(self._pnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
-            [noise.fractal2(x + t, y + t)
+            [noise._fractal2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -161,10 +161,10 @@ cdef class PerlinNoise(Noise):
     cpdef warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
         noise = Fractal2D(self._pnoise2)
-        warp = DomainWarping2D(noise.fractal2, weight=weight, octaves=octaves)
+        warp = DomainWarping2D(noise._fractal2, weight=weight, octaves=octaves)
 
         arr = np.array(
-            [warp.warp2_rot(x + t, y + t)
+            [warp._warp2_rot(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -176,10 +176,10 @@ cdef class PerlinNoise(Noise):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
         noise = Fractal2D(self._pnoise2)
-        warp = DomainWarping2D(noise.fractal2, weight=weight, octaves=octaves)
+        warp = DomainWarping2D(noise._fractal2, weight=weight, octaves=octaves)
 
         arr = np.array(
-            [warp.warp2(x, y)
+            [warp._warp2(x, y)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )

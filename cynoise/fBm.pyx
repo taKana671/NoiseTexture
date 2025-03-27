@@ -15,7 +15,7 @@ cdef class Fractal2D(Fractal):
         super().__init__(gain, lacunarity, octaves)
         self.noise = noise_gen
 
-    cdef double fractal2(self, double x, double y):
+    cdef double _fractal2(self, double x, double y):
         cdef:
             double ret
             double v = 0.0
@@ -32,7 +32,7 @@ cdef class Fractal2D(Fractal):
 
     
     cpdef double fractal(self, double x, double y):
-        return self.fractal2(x, y)
+        return self._fractal2(x, y)
 
 
 cdef class Fractal3D(Fractal):
@@ -41,7 +41,7 @@ cdef class Fractal3D(Fractal):
         super().__init__(gain, lacunarity, octaves)
         self.noise = noise_gen
 
-    cdef double fractal3(self, double x, double y, double z):
+    cdef double _fractal3(self, double x, double y, double z):
         cdef:
             double ret
             double v = 0.0
@@ -58,4 +58,4 @@ cdef class Fractal3D(Fractal):
 
     
     cpdef double fractal(self, double x, double y, double z):
-        return self.fractal3(x, y, z)
+        return self._fractal3(x, y, z)

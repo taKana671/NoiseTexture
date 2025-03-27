@@ -14,7 +14,7 @@ cdef class DomainWarping2D(Warping):
         super().__init__(weight, octaves)
         self.noise = noise_gen
 
-    cdef double warp2(self, double x, double y):
+    cdef double _warp2(self, double x, double y):
         cdef:
             double v = 0.0
 
@@ -23,7 +23,7 @@ cdef class DomainWarping2D(Warping):
 
         return v
 
-    cdef double warp2_rot(self, double x, double y):
+    cdef double _warp2_rot(self, double x, double y):
         cdef:
             double v = 0.0
             double xx, yy
@@ -39,7 +39,7 @@ cdef class DomainWarping2D(Warping):
         return self._warp2(x, y)
 
     cpdef double warp_rot(self, double x, double y):
-        return self.warp2_rot(x, y)
+        return self._warp2_rot(x, y)
 
 
 cdef class DomainWarping3D(Warping):
@@ -48,7 +48,7 @@ cdef class DomainWarping3D(Warping):
         super().__init__(weight, octaves)
         self.noise = noise_gen
 
-    cdef double warp3(self, double x, double y, double z):
+    cdef double _warp3(self, double x, double y, double z):
         cdef:
             double v = 0.0
 
@@ -62,4 +62,4 @@ cdef class DomainWarping3D(Warping):
         return v
 
     cpdef double warp(self, double x, double y, double z):
-        return self.warp3(x, y, z)
+        return self._warp3(x, y, z)

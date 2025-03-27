@@ -84,7 +84,7 @@ cdef class ValueNoise(Noise):
         p2[0] = 0.5 * xx / eps
         p2[1] = 0.5 * yy / eps
 
-        return self.inner_product2(&p1, &p2)
+        return self.inner_product22(&p1, &p2)
 
     cpdef double vnoise2(self, double x, double y):
         return self._vnoise2(x, y)
@@ -136,7 +136,7 @@ cdef class ValueNoise(Noise):
         noise = Fractal2D(self._vnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
-            [noise.fractal(x + t, y + t)
+            [noise._fractal2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -146,10 +146,10 @@ cdef class ValueNoise(Noise):
     def warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
         noise = Fractal2D(self._vnoise2)
-        warp = DomainWarping2D(noise.fractal, weight, octaves)
+        warp = DomainWarping2D(noise._fractal2, weight, octaves)
 
         arr = np.array(
-            [warp.warp2_rot(x + t, y + t)
+            [warp._warp2_rot(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -161,10 +161,10 @@ cdef class ValueNoise(Noise):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
         noise = Fractal2D(self._vnoise2)
-        warp = DomainWarping2D(noise.fractal, weight=weight)
+        warp = DomainWarping2D(noise._fractal2, weight=weight)
 
         arr = np.array(
-            [warp.warp(x, y)
+            [warp._warp2(x, y)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )

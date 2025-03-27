@@ -14,7 +14,7 @@ cdef class Noise:
         # self.k = [1164413355, 1737075525, 2309703015]
         self.k = [0x456789abu, 0x6789ab45u, 0x89ab4567u]
         self.u = [1, 2, 3]
-        self.uint_max = 4294967295
+        # self.uint_max = 4294967295
 
     def mock_time(self):
         return random.uniform(0, 1000)
@@ -83,7 +83,7 @@ cdef class Noise:
     @cython.cdivision(True)
     cdef double hash31(self, double[3] *p):
         cdef:
-            # unsigned int uint_max = 4294967295
+            unsigned int uint_max = 4294967295
             unsigned int i
             unsigned int[3] n
             double h
@@ -92,7 +92,7 @@ cdef class Noise:
             n[i] = <unsigned int>p[0][i]
         
         self.uhash33(&n)
-        h = <double>n[0] / self.uint_max
+        h = <double>n[0] / uint_max
         return h
 
     @cython.cdivision(True)
@@ -177,22 +177,42 @@ cdef class Noise:
     cdef double mod(self, double x, double y):
         return x - y * floor(x / y)
     
-    cdef double inner_product2(self, double[2] *p1, double[2] *p2):
+    cdef double inner_product22(self, double[2] *arr1, double[2] *arr2):
         cdef:
             double inner = 0
             unsigned int i
         
         for i in range(2):
-            inner += p1[0][i] * p2[0][i]
+            inner += arr1[0][i] * arr2[0][i]
 
         return inner
     
-    cdef double inner_product3(self, double[3] *p1, double[3] *p2):
+    cdef double inner_product33(self, double[3] *arr1, double[3] *arr2):
         cdef:
             double inner = 0
             unsigned int i
         
         for i in range(3):
-            inner += p1[0][i] * p2[0][i]
+            inner += arr1[0][i] * arr2[0][i]
+
+        return inner
+    
+    cdef double inner_product44(self, double[4] *arr1, double[4] *arr2):
+        cdef:
+            double inner = 0
+            unsigned int i
+        
+        for i in range(4):
+            inner += arr1[0][i] * arr2[0][i]
+
+        return inner
+    
+    cdef double inner_product31(self, double[3] *arr, double v):
+        cdef:
+            double inner = 0
+            unsigned int i
+        
+        for i in range(3):
+            inner += arr[0][i] * v
 
         return inner
