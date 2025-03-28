@@ -14,7 +14,7 @@ cdef class Noise:
         # self.k = [1164413355, 1737075525, 2309703015]
         self.k = [0x456789abu, 0x6789ab45u, 0x89ab4567u]
         self.u = [1, 2, 3]
-        # self.uint_max = 4294967295
+        self.uint_max = 4294967295
 
     def mock_time(self):
         return random.uniform(0, 1000)
@@ -68,7 +68,6 @@ cdef class Noise:
     @cython.cdivision(True)
     cdef double hash21(self, double[2] *p):
         cdef:
-            unsigned int uint_max = 4294967295
             unsigned int i
             unsigned int[2] n
             double h
@@ -77,13 +76,12 @@ cdef class Noise:
             n[i] = <unsigned int>p[0][i]
 
         self.uhash22(&n)
-        h = <double>n[0] / uint_max
+        h = <double>n[0] / self.uint_max
         return h
     
     @cython.cdivision(True)
     cdef double hash31(self, double[3] *p):
         cdef:
-            unsigned int uint_max = 4294967295
             unsigned int i
             unsigned int[3] n
             double h
@@ -92,13 +90,12 @@ cdef class Noise:
             n[i] = <unsigned int>p[0][i]
         
         self.uhash33(&n)
-        h = <double>n[0] / uint_max
+        h = <double>n[0] / self.uint_max
         return h
 
     @cython.cdivision(True)
     cdef void hash22(self, double[2] *p, double[2] *h):
         cdef:
-            unsigned int uint_max = 4294967295
             unsigned int i
             unsigned int[2] n
 
@@ -108,12 +105,11 @@ cdef class Noise:
         self.uhash22(&n)
 
         for i in range(2):
-            h[0][i] = <double>n[i] / uint_max
+            h[0][i] = <double>n[i] / self.uint_max
 
     @cython.cdivision(True)
     cdef void hash33(self, double[3] *p, double[3] *h):
         cdef:
-            unsigned int uint_max = 4294967295
             unsigned int i
             unsigned int[3] n
 
@@ -123,7 +119,7 @@ cdef class Noise:
         self.uhash33(&n)
 
         for i in range(3):
-            h[0][i] = <double>n[i] / uint_max
+            h[0][i] = <double>n[i] / self.uint_max
 
     cdef double hermite_interpolation(self, double x):
         return 3 * x**2 - 2 * x**3

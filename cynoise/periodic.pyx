@@ -14,9 +14,12 @@ cdef class PeriodicNoise(Noise):
 
     cdef:
         double period
-    
-    def __init__(self, period=4.0):
+        double half_period
+
+    def __init__(self, period=8.0):
+        super().__init__()
         self.period = period
+        self.half_period = period * 0.5
 
     cdef double _gtable2(self, double[2] *lattice, double[2] *p):
         cdef:
@@ -63,18 +66,16 @@ cdef class PeriodicNoise(Noise):
         return _u + _v
 
     @cython.cdivision(True)
-    cdef double _periodic2(self, double x, double y, double t, int grid):
+    cdef double _periodic2(self, double x, double y, double t=0.0):
         cdef:
             double fx, fy, nx, ny, w0, w1, px, py, hx, hy
             unsigned int i, j
-            double half_grid = <double>grid / 2
-            double half_period = <double>self.period / 2
             double[4] v
             double[2] arr_f, arr_n
 
-        px, py = self.xy2pol(x - half_grid, y - half_grid)
-        hx = (half_period / pi) * px + t
-        hy = half_period * py + t
+        px, py = self.xy2pol(2.0 * x - 1, 2.0 * y - 1)
+        hx = (self.half_period / pi) * px + t
+        hy = self.half_period * py + t
 
         nx = floor(hx)
         ny = floor(hy)
@@ -101,25 +102,23 @@ cdef class PeriodicNoise(Noise):
         return 0.5 * self.mix(w0, w1, fy) + 0.5
 
     @cython.cdivision(True)
-    cdef double _periodic3(self, double x, double y, double t, int grid):
+    cdef double _periodic3(self, double x, double y, double z):
         cdef:
             double fx, fy, fz, nx, ny, nz, w0, w1, px, py, hx, hy
             unsigned int i, j, k
-            double half_grid = <double>grid / 2
-            double half_period = <double>self.period / 2
             double[8] v
             double[3] arr_f, arr_n
 
-        px, py = self.xy2pol(x - half_grid, y - half_grid)
-        hx = half_period / pi * px + t
-        hy = half_period * py + t
+        px, py = self.xy2pol(2.0 * x - 1, 2.0 * y - 1)
+        hx = (self.half_period / pi) * px
+        hy = self.half_period * py
 
         nx = floor(hx)
         ny = floor(hy)
-        nz = floor(t)
+        nz = floor(z)
         fx = hx - nx
         fy = hy - ny
-        fz = t - nz
+        fz = z - nz
 
         for k in range(2):
             arr_n[2] = self.mod(nz + k, self.period)
@@ -143,30 +142,32 @@ cdef class PeriodicNoise(Noise):
 
         return 0.5 * self.mix(w0, w1, fz) + 0.5
 
-    cpdef double periodic2(self, double x, double y, double t, int grid):
-        return self._periodic2(x, y, t, grid)
+    cpdef double periodic2(self, double x, double y, double t=0):
+        return self._periodic2(x, y, t)
     
-    cpdef double periodic3(self, double x, double y, double t, int grid):
-        return self._periodic3(x, y, t, grid)
+    cpdef double periodic3(self, double x, double y, double z):
+        return self._periodic3(x, y, z)
     
-    cpdef noise2(self, size=256, grid=4, t=None):
-        t = self.mock_time() if t is None else float(t)
+    cpdef noise2(self, size=256, t=None):
+        t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self._periodic2(x, y, t, grid)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+            [self._periodic2(x / size, y / size, t)
+                for y in range(size)
+                for x in range(size)]
         )
+
         arr = arr.reshape(size, size)
         return arr
 
-    cpdef noise3(self, size=256, grid=4, t=None):
-        t = self.mock_time() if t is None else float(t)
+    cpdef noise3(self, size=256, t=None):
+        t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self._periodic3(x, y, t, grid)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+            [self._periodic3(x / size, y / size, t)
+                for y in range(size)
+                for x in range(size)]
         )
+
         arr = arr.reshape(size, size)
         return arr

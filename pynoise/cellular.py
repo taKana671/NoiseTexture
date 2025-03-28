@@ -136,6 +136,17 @@ class CellularNoise(Noise):
         arr = arr.reshape(size, size)
         return arr
 
+    def noise2(self, size=256, grid=4, t=None):
+        t = self.mock_time() if t is None else t
+
+        arr = np.array(
+            [self.fdist2(np.array([x / size, y / size]) + t)
+                for y in range(size)
+                for x in range(size)]
+        )
+        arr = arr.reshape(size, size)
+        return arr
+
     def noise3(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
 

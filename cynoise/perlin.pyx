@@ -174,7 +174,7 @@ cdef class PerlinNoise(Noise):
 
     cpdef warp2(self, size=256, grid=4, t=None, octaves=4):
         t = self.mock_time() if t is None else t
-        _, mod = divmod(t, 10)
+        mod = self.mod(t, 10)
         weight = abs(mod - 5.0)
         # weight = abs(t % 10 - 5.0) <- 't % 10' maybe causes warning C4244: '=': conversion from 'Py_ssize_t' to 'long',
         noise = Fractal2D(self._pnoise2)

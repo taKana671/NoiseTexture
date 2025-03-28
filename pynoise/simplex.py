@@ -108,7 +108,8 @@ class SimplexNoise(Noise):
         b1 = np.concatenate([x[2:], y[2:]])
         s0 = np.floor(b0) * 2.0 + 1.0
         s1 = np.floor(b1) * 2.0 + 1.0
-        sh = self.step_arr(h, [0] * 4) * -1
+        # sh = self.step_arr(h, [0] * 4) * -1
+        sh = -self.step_arr(h, [0] * 4)
         a0 = b0[[0, 2, 1, 3]] + s0[[0, 2, 1, 3]] * sh[[0, 0, 1, 1]]
         a1 = b1[[0, 2, 1, 3]] + s1[[0, 2, 1, 3]] * sh[[2, 2, 3, 3]]
 

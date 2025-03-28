@@ -159,7 +159,8 @@ cdef class ValueNoise(Noise):
 
     def warp2(self, size=256, grid=4, octaves=4, t=None):
         t = self.mock_time() if t is None else t
-        weight = abs(t % 10 - 5.0)
+        mod = self.mod(t, 10)
+        weight = abs(mod - 5.0)
         noise = Fractal2D(self._vnoise2)
         warp = DomainWarping2D(noise._fractal2, weight=weight)
 

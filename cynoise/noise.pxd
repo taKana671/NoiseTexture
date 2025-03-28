@@ -6,7 +6,7 @@ cdef class Noise:
     cdef:
         unsigned int[3] k
         unsigned int[3] u
-        # unsigned int uint_max
+        unsigned int uint_max
 
     cdef unsigned int uhash11(self, unsigned int n)
 
