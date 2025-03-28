@@ -158,7 +158,7 @@ cdef class PerlinNoise(Noise):
         arr = arr.reshape(size, size)
         return arr
 
-    cpdef warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
+    cpdef warp2_rot(self, size=256, grid=4, t=None, weight=1.0, octaves=4):
         t = self.mock_time() if t is None else t
         noise = Fractal2D(self._pnoise2)
         warp = DomainWarping2D(noise._fractal2, weight=weight, octaves=octaves)
@@ -174,7 +174,9 @@ cdef class PerlinNoise(Noise):
 
     cpdef warp2(self, size=256, grid=4, t=None, octaves=4):
         t = self.mock_time() if t is None else t
-        weight = abs(t % 10 - 5.0)
+        _, mod = divmod(t, 10)
+        weight = abs(mod - 5.0)
+        # weight = abs(t % 10 - 5.0) <- 't % 10' maybe causes warning C4244: '=': conversion from 'Py_ssize_t' to 'long',
         noise = Fractal2D(self._pnoise2)
         warp = DomainWarping2D(noise._fractal2, weight=weight, octaves=octaves)
 
@@ -183,5 +185,6 @@ cdef class PerlinNoise(Noise):
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
+
         arr = arr.reshape(size, size)
         return arr

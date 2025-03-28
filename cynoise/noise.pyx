@@ -207,12 +207,22 @@ cdef class Noise:
 
         return inner
     
-    cdef double inner_product31(self, double[3] *arr, double v):
+    cdef double inner_product31(self, double[3] *arr, double *v):
         cdef:
             double inner = 0
             unsigned int i
         
         for i in range(3):
-            inner += arr[0][i] * v
+            inner += arr[0][i] * v[0]
+
+        return inner
+
+    cdef double inner_product21(self, double[2] *arr, double *v):
+        cdef:
+            double inner = 0
+            unsigned int i
+        
+        for i in range(2):
+            inner += arr[0][i] * v[0]
 
         return inner

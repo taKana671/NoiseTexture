@@ -10,7 +10,7 @@ cdef class Warping:
 
 cdef class DomainWarping2D(Warping):
 
-    def __init__(self, noise_gen, weight=1, octaves=4):
+    def __init__(self, noise_gen, weight=1.0, octaves=4):
         super().__init__(weight, octaves)
         self.noise = noise_gen
 
@@ -44,7 +44,7 @@ cdef class DomainWarping2D(Warping):
 
 cdef class DomainWarping3D(Warping):
 
-    def __init__(self, noise_gen, weight=1, octaves=4):
+    def __init__(self, noise_gen, weight=1.0, octaves=4):
         super().__init__(weight, octaves)
         self.noise = noise_gen
 

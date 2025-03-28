@@ -2,22 +2,13 @@
 
 import cython
 import numpy as np
-from libc.math cimport floor, cos, sin, pi, fmax, fmin, modf, fabs
+from libc.math cimport floor, fmax, fmin, modf, fabs
 
-from cynoise.fBm cimport Fractal2D
+from cynoise.fBm cimport Fractal2D, Fractal3D
 from cynoise.noise cimport Noise
-from cynoise.warping cimport DomainWarping2D
 
 
 cdef class SimplexNoise(Noise):
-
-    #cdef void add22(self, double[2] *arr1, double[2] *arr2, double[2] *result):
-    #    result[0][0] = arr1[0][0] + arr2[0][0]
-    #    result[0][1] = arr1[0][1] + arr2[0][1]
-    
-    #cdef void floor2(self, double[2] *arr, double[2] *result):
-    #    result[0][0] = floor(arr[0][0])
-    #    result[0][1] = floor(arr[0][1])
 
     @cython.cdivision(True)
     cdef double mod289(self, double v):
@@ -31,67 +22,64 @@ cdef class SimplexNoise(Noise):
         # return 1 / v ** 2
 
     @cython.cdivision(True)
-    cdef double _snoise2(self, double x, double y, int scale):
+    cdef double _snoise2(self, double x, double y):
         cdef:
-            double[2] p = [x * scale, y * scale]
-            double[2] x0, x1, x2, i, i1, i2
-            double[3] perm, ip, a0, h, mm, g
+            double[2] p = [x, y]
+            double[3][2] cn
+            double[2][2] dr
+            double[3] perm, a0, h, mm, g
             double[4] grid
-            double inner_product, f, m, iptr, xx, ox
-            unsigned int idx
+            double ip, f, m, iptr, xx, ox
+            unsigned int i
         
         grid[0] = (3.0 - 3.0 ** 0.5) / 6.0
         grid[1] = 0.5 * (3.0 ** 0.5 - 1.0)
         grid[2] = -1.0 + 2.0 * grid[0]
         grid[3] = 1.0 / 41.0
 
-        # the first corner
-        inner_product = p[0] * grid[1] + p[1] * grid[1] 
-        for idx in range(2):
-            i[idx] = floor(p[idx] + inner_product)
+        # the first corner 
+        ip = self.inner_product21(&p, &grid[1])
+
+        dr[0][0] = floor(p[0] + ip)
+        dr[0][1] = floor(p[1] + ip)
         
-        inner_product = i[0] * grid[0] + i[1] * grid[0] 
-        for idx in range(2):
-            x0[idx] = p[idx] - i[idx] + inner_product
+        ip = self.inner_product21(&dr[0], &grid[0])
+
+        cn[0][0] = p[0] - dr[0][0] + ip
+        cn[0][1] = p[1] - dr[0][1] + ip
 
         # the other two corners
-        if x0[0] > x0[1]:
-            i1 = [1.0, 0.0]
+        if cn[0][0] > cn[0][1]:
+            dr[1][:] = [1.0, 0.0]
         else:
-            i1 = [0.0, 1.0]
+            dr[1][:] = [0.0, 1.0]
 
-        for idx in range(2):
-            x1[idx] = x0[idx] + grid[0] - i1[idx]
-            x2[idx] = x0[idx] + grid[2]
+        for i in range(2):
+            cn[1][i] = cn[0][i] + grid[0] - dr[1][i]
+            cn[2][i] = cn[0][i] + grid[2]
 
         perm = [0, 0, 0]
-        for idx in range(1, -1, -1):
-            m = self.mod289(i[idx])
+
+        for i in range(1, -1, -1):
+            m = self.mod289(dr[0][i])
             perm[0] = self.permute(perm[0] + m)
-            perm[1] = self.permute(perm[1] + m + i1[idx])
+            perm[1] = self.permute(perm[1] + m + dr[1][i])
             perm[2] = self.permute(perm[2] + m + 1.0)
         
-        ip = [
-            self.inner_product22(&x0, &x0),
-            self.inner_product22(&x1, &x1),
-            self.inner_product22(&x2, &x2),
-        ]
-
-        for idx in range(3):
-            m = fmax(0.5 - ip[idx], 0.0)
-            m = m ** 4
-
-            f = modf(perm[idx] * grid[3], &iptr)
+        for i in range(3):
+            ip = self.inner_product22(&cn[i], &cn[i])
+            m = fmax(0.5 - ip, 0.0) ** 4
+            f = modf(perm[i] * grid[3], &iptr)
             xx = 2.0 * f - 1.0
-            h[idx] = fabs(xx) - 0.5
+            h[i] = fabs(xx) - 0.5
             ox = floor(xx + 0.5)
-            a0[idx] = xx - ox
-            mm[idx] = m * self.inverssqrt(a0[idx] ** 2 + h[idx] ** 2)
+            a0[i] = xx - ox
+            mm[i] = m * self.inverssqrt(a0[i] ** 2 + h[i] ** 2)
         
         g = [
-            a0[0] * x0[0] + h[0] * x0[1],
-            a0[1] * x1[0] + h[1] * x1[1],
-            a0[2] * x2[0] + h[2] * x2[1]
+            a0[0] * cn[0][0] + h[0] * cn[0][1],
+            a0[1] * cn[1][0] + h[1] * cn[1][1],
+            a0[2] * cn[2][0] + h[2] * cn[2][1]
         ]
 
         return 130.0 * self.inner_product33(&mm, &g) * 0.5 + 0.5
@@ -104,112 +92,121 @@ cdef class SimplexNoise(Noise):
         for i in range(3):
             elem = arr[0][i]
             arr[0][i] = elem * v
-            # arr[0][i] = arr[0][i] * multiplier
 
     @cython.cdivision(True)
-    cdef double _snoise3(self, double x, double y, double z, int scale):
+    cdef double _snoise3(self, double x, double y, double z):
         cdef:
-            double[3] p = [x * scale, y * scale, z * scale]
+            double[3] p = [x, y, z]
             double[2] c = [1.0 / 6.0, 1.0 / 3.0]
             double[4] d = [0.0, 0.5, 1.0, 2.0]
-            double[4] perm, xx, yy, h, b0, b1, s0, s1, sh, a0, a1, mx, cp
-            double[3] i, i1, i2, x0, x1, x2, x3, ll, g, tmp, ns, p0, p1, p2, p3
-            double inner_prod1, inner_prod2, m, div, _xx, _yy, j
-            unsigned int k
+            double[4] perm, h, sh, mx, cp
+            double[3] ll, g, tmp, ns
+            double[2][4] a, b, s, t
+            double[4][3] pt, cn
+            double[3][3] dr
+
+            double ip, m, div, _x, _y, j
+            unsigned int i
         
         # the first corner
-        inner_prod1 = self.inner_product31(&p, c[1])
-        inner_prod2 = 0.0
+        ip = self.inner_product31(&p, &c[1])
 
-        for k in range(3):
-            i[k] = floor(p[k] + inner_prod1)
-            inner_prod2 += i[k] * c[0]
-        
-        for k in range(3):
-            x0[k] = p[k] - i[k] + inner_prod2
+        for i in range(3):
+            dr[0][i] = floor(p[i] + ip)
+
+        ip = self.inner_product31(&dr[0], &c[0])
+
+        for i in range(3):
+            cn[0][i] = p[i] - dr[0][i] + ip
         
         # other corners
-        tmp = [x0[1], x0[2], x0[0]]
+        tmp = [cn[0][1], cn[0][2], cn[0][0]]
 
-        for k in range(3):
-            g[k] = <double>self.step(tmp[k], x0[k])
-            ll[k] = 1.0 - g[k]
+        for i in range(3):
+            g[i] = <double>self.step(tmp[i], cn[0][i])
+            ll[i] = 1.0 - g[i]
         
         tmp = [ll[2], ll[0], ll[1]]
 
-        for k in range(3):
-            i1[k] = fmin(g[k], tmp[k])
-            i2[k] = fmax(g[k], tmp[k])
-            x1[k] = x0[k] - i1[k] + c[0]
-            x2[k] = x0[k] - i2[k] + c[1]
-            x3[k] = x0[k] - d[1]
+        for i in range(3):
+            dr[1][i] = fmin(g[i], tmp[i])
+            dr[2][i] = fmax(g[i], tmp[i])
+            cn[1][i] = cn[0][i] - dr[1][i] + c[0]
+            cn[2][i] = cn[0][i] - dr[2][i] + c[1]
+            cn[3][i] = cn[0][i] - d[1]
 
         perm = [0, 0, 0, 0]
 
-        for k in range(2, -1, -1):
-            m = self.mod289(i[k])
+        for i in range(2, -1, -1):
+            m = self.mod289(dr[0][i])
             perm[0] = self.permute(perm[0] + m)
-            perm[1] = self.permute(perm[1] + m + i1[k])
-            perm[2] = self.permute(perm[2] + m + i2[k])
+            perm[1] = self.permute(perm[1] + m + dr[1][i])
+            perm[2] = self.permute(perm[2] + m + dr[2][i])
             perm[3] = self.permute(perm[3] + m + 1.0)
         
         div = 1.0 / 7.0
         ns = [div * d[3] - d[0], div * d[1] - d[2], div * d[2] - d[0]]
 
-        for k in range(4):
-            j = perm[k] - 49.0 * floor(perm[k] * ns[2] * ns[2])
-            _xx = floor(j * ns[2])
-            _yy = floor(j - 7.0 * _xx)
-            xx[k] = _xx * ns[0] + ns[1]
-            yy[k] = _yy * ns[0] + ns[1]
-            h[k] = 1.0 - fabs(xx[k]) - fabs(yy[k])
+        for i in range(4):
+            j = perm[i] - 49.0 * floor(perm[i] * ns[2] * ns[2])
+            _x = floor(j * ns[2])
+            _y = floor(j - 7.0 * _x)
+            t[0][i] = _x * ns[0] + ns[1]
+            t[1][i] = _y * ns[0] + ns[1]
+            h[i] = 1.0 - fabs(t[0][i]) - fabs(t[1][i])
         
-        b0 = [xx[0], xx[1], yy[0], yy[1]]
-        b1 = [xx[2], xx[3], yy[2], yy[3]]
+        b[0][:] = [t[0][0], t[0][1], t[1][0], t[1][1]]
+        b[1][:] = [t[0][2], t[0][3], t[1][2], t[1][3]]
 
-        for k in range(4):
-            s0[k] = floor(b0[k]) * 2.0 + 1.0
-            s1[k] = floor(b1[k]) * 2.0 + 1.0
-            sh[k] = <double>self.step(h[k], 0.0) * -1.0
+        for i in range(4):
+            s[0][i] = floor(b[0][i]) * 2.0 + 1.0
+            s[1][i] = floor(b[1][i]) * 2.0 + 1.0
+            sh[i] = <double>self.step(h[i], 0.0) * -1.0
 
-        a0 = [b0[0] + s0[0] * sh[0], b0[2] + s0[2] * sh[0],
-              b0[1] + s0[1] * sh[1], b0[3] + s0[3] * sh[1]]
+        a[0][:] = [b[0][0] + s[0][0] * sh[0], b[0][2] + s[0][2] * sh[0],
+                   b[0][1] + s[0][1] * sh[1], b[0][3] + s[0][3] * sh[1]]
 
-        a1 = [b1[0] + s1[0] * sh[2], b1[2] + s1[2] * sh[2],
-              b1[1] + s1[1] * sh[3], b1[3] + s1[3] * sh[3]]
+        a[1][:] = [b[1][0] + s[1][0] * sh[2], b[1][2] + s[1][2] * sh[2], 
+                   b[1][1] + s[1][1] * sh[3], b[1][3] + s[1][3] * sh[3]]
 
-        p0 = [a0[0], a0[1], h[0]]
-        p1 = [a0[2], a0[3], h[1]]
-        p2 = [a1[0], a1[1], h[2]]
-        p3 = [a1[2], a1[3], h[3]]
+        pt[0][:] = [a[0][0], a[0][1], h[0]]
+        pt[1][:] = [a[0][2], a[0][3], h[1]]
+        pt[2][:] = [a[1][0], a[1][1], h[2]]
+        pt[3][:] = [a[1][2], a[1][3], h[3]]
             
-        self.product31(&p0, self.inverssqrt(self.inner_product33(&p0, &p0)))
-        self.product31(&p1, self.inverssqrt(self.inner_product33(&p1, &p1)))
-        self.product31(&p2, self.inverssqrt(self.inner_product33(&p2, &p2)))
-        self.product31(&p3, self.inverssqrt(self.inner_product33(&p3, &p3)))
+        self.product31(&pt[0], self.inverssqrt(self.inner_product33(&pt[0], &pt[0])))
+        self.product31(&pt[1], self.inverssqrt(self.inner_product33(&pt[1], &pt[1])))
+        self.product31(&pt[2], self.inverssqrt(self.inner_product33(&pt[2], &pt[2])))
+        self.product31(&pt[3], self.inverssqrt(self.inner_product33(&pt[3], &pt[3])))
 
         mx = [
-            fmax(0.6 - self.inner_product33(&x0, &x0), 0.0) ** 4,
-            fmax(0.6 - self.inner_product33(&x1, &x1), 0.0) ** 4,
-            fmax(0.6 - self.inner_product33(&x2, &x2), 0.0) ** 4,
-            fmax(0.6 - self.inner_product33(&x3, &x3), 0.0) ** 4
+            fmax(0.6 - self.inner_product33(&cn[0], &cn[0]), 0.0) ** 4,
+            fmax(0.6 - self.inner_product33(&cn[1], &cn[1]), 0.0) ** 4,
+            fmax(0.6 - self.inner_product33(&cn[2], &cn[2]), 0.0) ** 4,
+            fmax(0.6 - self.inner_product33(&cn[3], &cn[3]), 0.0) ** 4
         ]
 
         cp = [
-            self.inner_product33(&p0, &x0),
-            self.inner_product33(&p1, &x1),
-            self.inner_product33(&p2, &x2),
-            self.inner_product33(&p3, &x3)
+            self.inner_product33(&pt[0], &cn[0]),
+            self.inner_product33(&pt[1], &cn[1]),
+            self.inner_product33(&pt[2], &cn[2]),
+            self.inner_product33(&pt[3], &cn[3])
         ]
 
         return 42.0 * self.inner_product44(&mx, &cp) * 0.5 + 0.5
 
-    cpdef noise2(self, width=256, height=256, scale=20, t=None):
+    cpdef double snoise2(self, double x, double y):
+        return self._snoise2(x, y)
+    
+    cpdef double snoise3(self, double x, double y, double z):
+        return self._snoise3(x, y, z)
+     
+    cpdef noise2(self, width=256, height=256, scale=20.0, t=None):
         t = self.mock_time() if t is None else t
         m = min(width, height)
 
         arr = np.array(
-            [self._snoise2(x / m + t,  y / m + t, scale)
+            [self._snoise2((x / m + t) * scale,  (y / m + t) * scale)
                 for y in range(height)
                 for x in range(width)]
         )
@@ -217,14 +214,46 @@ cdef class SimplexNoise(Noise):
         arr = arr.reshape(height, width)
         return arr
     
-    def noise3(self, width=256, height=256, scale=20, t=None):
+    cpdef noise3(self, width=256, height=256, scale=20.0, t=None):
         t = self.mock_time() if t is None else t
         m = min(width, height)
 
         arr = np.array(
-            [self._snoise3(x / m + t, y / m + t, t, scale)
+            [self._snoise3((x / m + t) * scale, (y / m + t) * scale, t * scale)
                 for y in range(height)
                 for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+    
+    cpdef fractal2(self, width=256, height=256, t=None,
+                   gain=0.5, lacunarity=2.01, octaves=4):
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+
+        noise = Fractal2D(
+            self._snoise2, gain=gain, lacunarity=lacunarity, octaves=octaves)
+
+        arr = np.array(
+            [noise._fractal2(x / m + t, y / m + t)
+             for y in range(height) for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
+    cpdef fractal3(self, width=256, height=256, t=None,
+                   gain=0.5, lacunarity=2.01, octaves=4):
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+
+        noise = Fractal3D(
+            self._snoise3, gain=gain, lacunarity=lacunarity, octaves=octaves)
+
+        arr = np.array(
+            [noise._fractal3(x / m + t, y / m + t, t)
+             for y in range(height) for x in range(width)]
         )
 
         arr = arr.reshape(height, width)

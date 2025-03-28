@@ -10,16 +10,36 @@ cdef class CellularNoise(Noise):
 
     cdef void _sort4(self, double[4] *dist4, double *length):
         if self.step(length[0], dist4[0][0]):
-            dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = length[0], dist4[0][0], dist4[0][1], dist4[0][2]
+            # dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = length[0], dist4[0][0], dist4[0][1], dist4[0][2]
+
+            dist4[0][0] = length[0]
+            dist4[0][1] = dist4[0][0]
+            dist4[0][2] = dist4[0][1]
+            dist4[0][3] = ist4[0][2]
 
         elif self.step(length[0], dist4[0][1]):
-            dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], length[0], dist4[0][1], dist4[0][2]
+            #dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], length[0], dist4[0][1], dist4[0][2]
+
+            dist4[0][0] = dist4[0][0]
+            dist4[0][1] = length[0]
+            dist4[0][2] = dist4[0][1]
+            dist4[0][3] = dist4[0][2]
 
         elif self.step(length[0], dist4[0][2]):
-            dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], dist4[0][1], length[0], dist4[0][2]
+            #dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], dist4[0][1], length[0], dist4[0][2]
+
+            dist4[0][0] = dist4[0][0]
+            dist4[0][1] = dist4[0][1]
+            dist4[0][2] = length[0]
+            dist4[0][3] = dist4[0][2]
 
         elif self.step(length[0], dist4[0][3]):
-            dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], dist4[0][1], dist4[0][2], length[0]
+            #dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], dist4[0][1], dist4[0][2], length[0]
+
+            dist4[0][0] = dist4[0][0]
+            dist4[0][1] = dist4[0][1]
+            dist4[0][2] = dist4[0][2]
+            dist4[0][3] = length[0]
     
     cdef list _fdist24(self, double x, double y):
         cdef:
@@ -39,7 +59,8 @@ cdef class CellularNoise(Noise):
             dist4[i] = length
 
         for j in range(5):
-            md = <double>j % 2 - 0.5
+            # md = <double>j % 2 - 0.5
+            md = self.mod(<double>j, 2) - 0.5
             grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
             if abs(grid[1] - p[1]) - 0.5 > dist4[3]:
@@ -77,14 +98,16 @@ cdef class CellularNoise(Noise):
             dist4[i] = length
 
         for k in range(5):
-            md = <double>k % 2 - 0.5
+            #md = <double>k % 2 - 0.5
+            md = self.mod(<double>k, 2) - 0.5
             grid[2] = nz + self.sign_with_abs(&md) * ceil(k * 0.5)
 
             if abs(grid[2] - p[2]) - 0.5 > dist4[3]:
                 continue
 
             for j in range(5):
-                md = <double>j % 2 - 0.5
+                # md = <double>j % 2 - 0.5
+                md = self.mod(<double>j, 2) - 0.5
                 grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
                 if abs(grid[1] - p[1]) - 0.5 > dist4[3]:
@@ -114,7 +137,8 @@ cdef class CellularNoise(Noise):
         ny = floor(p[1] + 0.5)
 
         for j in range(3):
-            md = <double>j % 2 - 0.5
+            #md = <double>j % 2 - 0.5
+            md = self.mod(<double>j, 2) - 0.5
             grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
             if abs(grid[1] - p[1]) - 0.5 > dist:
@@ -145,14 +169,16 @@ cdef class CellularNoise(Noise):
         nz = floor(p[2] + 0.5)
 
         for k in range(3):
-            md = <double>k % 2 - 0.5
+            #md = <double>k % 2 - 0.5
+            md = self.mod(<double>k, 2) - 0.5
             grid[2] = nz + self.sign_with_abs(&md) * ceil(k * 0.5)
 
             if abs(grid[2] - p[2]) - 0.5 > dist:
                 continue
 
             for j in range(3):
-                md = <double>j % 2 - 0.5
+                #md = <double>j % 2 - 0.5
+                md = self.mod(<double>j, 2) - 0.5
                 grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
         
                 if abs(grid[1] - p[1]) - 0.5 > dist:
