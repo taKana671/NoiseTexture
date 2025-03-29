@@ -4,9 +4,9 @@ import numpy as np
 # cimport numpy as cnp
 from libc.math cimport floor, cos, sin, pi
 
-from cynoise.fBm cimport Fractal2D
-from cynoise.noise cimport Noise
-from cynoise.warping cimport DomainWarping2D
+from .fBm cimport Fractal2D
+from .noise cimport Noise
+from .warping cimport DomainWarping2D
 
 
 cdef class PerlinNoise(Noise):

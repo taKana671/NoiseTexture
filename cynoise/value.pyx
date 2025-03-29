@@ -4,9 +4,9 @@ import cython
 import numpy as np
 from libc.math cimport floor
 
-from cynoise.fBm cimport Fractal2D
-from cynoise.noise cimport Noise
-from cynoise.warping cimport DomainWarping2D
+from .fBm cimport Fractal2D
+from .noise cimport Noise
+from .warping cimport DomainWarping2D
 
 
 cdef class ValueNoise(Noise):

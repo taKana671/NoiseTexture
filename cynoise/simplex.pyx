@@ -4,8 +4,8 @@ import cython
 import numpy as np
 from libc.math cimport floor, fmax, fmin, modf, fabs
 
-from cynoise.fBm cimport Fractal2D, Fractal3D
-from cynoise.noise cimport Noise
+from .fBm cimport Fractal2D, Fractal3D
+from .noise cimport Noise
 
 
 cdef class SimplexNoise(Noise):

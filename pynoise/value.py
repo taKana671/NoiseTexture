@@ -49,10 +49,6 @@ class ValueNoise(Noise):
             self.vnoise2(x + eps, y) - self.vnoise2(x - eps, y),
             self.vnoise2(x, y + eps) - self.vnoise2(x, y - eps)
         ])
-        # arr = np.array([
-        #     self.vnoise2(p + np.array([eps, 0.0])) - self.vnoise2(p - np.array([eps, 0.0])),
-        #     self.vnoise2(p + np.array([0.0, eps])) - self.vnoise2(p - np.array([0.0, eps]))
-        # ])
 
         grad = 0.5 * arr / eps
         return np.dot(np.ones(2), grad)

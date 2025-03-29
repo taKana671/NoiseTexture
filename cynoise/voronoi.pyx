@@ -3,7 +3,7 @@
 import numpy as np
 from libc.math cimport floor, ceil
 
-from cynoise.noise cimport Noise
+from .noise cimport Noise
 
 
 cdef class VoronoiNoise(Noise):
