@@ -1,20 +1,20 @@
 import numpy as np
 
-from .fBm import Fractal
-from .warping import DomainWarping
+from .fBm import Fractal2D
+from .warping import DomainWarping2D
 from .noise import Noise
 
 
 class ValueNoise(Noise):
 
-    def vnoise2(self, p):
+    def vnoise2(self, x, y):
         """Args:
-            p (numpy.ndarray): 2-dimensional array
+            x, y (float)
         """
+        p = np.array([x, y])
         n = np.floor(p)
         v = [self.hash21(n + np.array([i, j])) for j in range(2) for i in range(2)]
 
-        # f, _ = np.modf(p)
         f = p - n
         # f = self.hermite_interpolation(f)
         f = self.quintic_hermite_interpolation(f)
@@ -23,15 +23,15 @@ class ValueNoise(Noise):
 
         return self.mix(w0, w1, f[1])
 
-    def vnoise3(self, p):
+    def vnoise3(self, x, y, z):
         """Args:
-            p (numpy.ndarray): 3-dimensional array
+            x, y, z (float)
         """
+        p = np.array([x, y, z])
         n = np.floor(p)
         v = [self.hash31(n + np.array([i, j, k]))
              for k in range(2) for j in range(2) for i in range(2)]
 
-        # f, _ = np.modf(p)
         f = p - n
         # f = self.hermite_interpolation(f)
         f = self.quintic_hermite_interpolation(f)
@@ -40,15 +40,19 @@ class ValueNoise(Noise):
 
         return self.mix(w0, w1, f[2])
 
-    def vgrad(self, p):
+    def vgrad(self, x, y):
         """Args:
-            p (numpy.ndarray): 2-dimensional array
+            x, y (float)
         """
         eps = 0.001
         arr = np.array([
-            self.vnoise2(p + np.array([eps, 0.0])) - self.vnoise2(p - np.array([eps, 0.0])),
-            self.vnoise2(p + np.array([0.0, eps])) - self.vnoise2(p - np.array([0.0, eps]))
+            self.vnoise2(x + eps, y) - self.vnoise2(x - eps, y),
+            self.vnoise2(x, y + eps) - self.vnoise2(x, y - eps)
         ])
+        # arr = np.array([
+        #     self.vnoise2(p + np.array([eps, 0.0])) - self.vnoise2(p - np.array([eps, 0.0])),
+        #     self.vnoise2(p + np.array([0.0, eps])) - self.vnoise2(p - np.array([0.0, eps]))
+        # ])
 
         grad = 0.5 * arr / eps
         return np.dot(np.ones(2), grad)
@@ -57,7 +61,7 @@ class ValueNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.vnoise2(np.array([x, y]) + t)
+            [self.vnoise2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -69,7 +73,7 @@ class ValueNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.vnoise3(np.array([x + t, y + t, t]))
+            [self.vnoise3(x + t, y + t, t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -81,7 +85,7 @@ class ValueNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.vgrad(np.array([x, y]) + t)
+            [self.vgrad(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -91,10 +95,10 @@ class ValueNoise(Noise):
 
     def fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal(self.vnoise2, gain, lacunarity, octaves)
+        noise = Fractal2D(self.vnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
-            [noise.fractal(np.array([x, y]) + t)
+            [noise.fractal(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -103,11 +107,11 @@ class ValueNoise(Noise):
 
     def warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal(self.vnoise2)
-        warp = DomainWarping(noise.fractal, weight, octaves)
+        noise = Fractal2D(self.vnoise2)
+        warp = DomainWarping2D(noise.fractal, weight, octaves)
 
         arr = np.array(
-            [warp.warp2_rot(np.array([x, y]) + t)
+            [warp.warp_rot(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -118,11 +122,11 @@ class ValueNoise(Noise):
     def warp2(self, size=256, grid=4, octaves=4, t=None):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
-        noise = Fractal(self.vnoise2)
-        warp = DomainWarping(noise.fractal, weight=weight)
+        noise = Fractal2D(self.vnoise2)
+        warp = DomainWarping2D(noise.fractal, weight=weight)
 
         arr = np.array(
-            [warp.warp(np.array([x, y]))
+            [warp.warp(x, y)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )

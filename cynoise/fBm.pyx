@@ -30,7 +30,6 @@ cdef class Fractal2D(Fractal):
 
         return 0.5 * v + 0.5
 
-    
     cpdef double fractal(self, double x, double y):
         return self._fractal2(x, y)
 
@@ -56,6 +55,5 @@ cdef class Fractal3D(Fractal):
 
         return 0.5 * v + 0.5
 
-    
     cpdef double fractal(self, double x, double y, double z):
         return self._fractal3(x, y, z)

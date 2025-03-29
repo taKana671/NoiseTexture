@@ -99,14 +99,6 @@ class Noise:
             return 0
         return 1
 
-    def step_arr(self, edge_arr, x_arr):
-        """Args:
-            edge_arr and x_arr must have the same length.
-            edge_arr (numpy.ndarray, list, tuple)
-            x_arr (numpy.ndarray, list, tuple)
-        """
-        return np.array([self.step(edge, x) for edge, x in zip(edge_arr, x_arr)])
-
     def smoothstep(self, edge0, edge1, x):
         """Args:
             edge0, edge1, x (float)
@@ -140,6 +132,3 @@ class Noise:
             max_val (float): the upper end of the range into which to constrain x.
         """
         return min(max(x, min_val), max_val)
-
-    def clamp_arr(self, x_arr, min_val, max_val):
-        return np.array([self.clamp(x, min_val, max_val) for x in x_arr])

@@ -20,11 +20,10 @@ cdef class CellularNoise(Noise):
 
         elif self.step(length[0], dist4[0][3]):
             dist4[0][0], dist4[0][1], dist4[0][2], dist4[0][3] = dist4[0][0], dist4[0][1], dist4[0][2], length[0]
-
-    #cdef list _fdist24(self, double x, double y):
-    cdef (double, double, double, double) _fdist24(self, double x, double y):
+    
+    cdef list _fdist24(self, double x, double y):
         cdef:
-            unsigned int i, j, ii
+            int i, j, ii
             double nx, ny, length, md
             double[2] grid, jitter, v, temp
             double[2] p = [x, y]
@@ -40,7 +39,8 @@ cdef class CellularNoise(Noise):
             dist4[i] = length
 
         for j in range(5):
-            md = self.mod(<double>j, 2.0) - 0.5
+            #md = <double>j % 2 - 0.5
+            md = self.mod(<double>j, 2) - 0.5
             grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
             if abs(grid[1] - p[1]) - 0.5 > dist4[3]:
@@ -56,13 +56,11 @@ cdef class CellularNoise(Noise):
                 length = self.get_norm2(&v)
                 self._sort4(&dist4, &length)
 
-        return dist4[0], dist4[1], dist4[2], dist4[3]
-        #return dist4
+        return dist4
     
-    #cdef list _fdist34(self, double x, double y, double z):
-    cdef (double, double, double, double) _fdist34(self, double x, double y, double z):
+    cdef list _fdist34(self, double x, double y, double z):
         cdef:
-            unsigned int i, j, k, ii
+            int i, j, k, ii
             double nx, ny, nz, length, md
             double[3] grid, jitter, v, temp
             double[3] p = [x, y, z]
@@ -80,14 +78,16 @@ cdef class CellularNoise(Noise):
             dist4[i] = length
 
         for k in range(5):
-            md = self.mod(<double>k, 2.0) - 0.5
+            # md = <double>k % 2 - 0.5
+            md = self.mod(<double>k, 2) - 0.5
             grid[2] = nz + self.sign_with_abs(&md) * ceil(k * 0.5)
 
             if abs(grid[2] - p[2]) - 0.5 > dist4[3]:
                 continue
 
             for j in range(5):
-                md = self.mod(<double>j, 2.0) - 0.5
+                # md = <double>j % 2 - 0.5
+                md = self.mod(<double>j, 2) - 0.5
                 grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
                 if abs(grid[1] - p[1]) - 0.5 > dist4[3]:
@@ -103,12 +103,11 @@ cdef class CellularNoise(Noise):
                     length = self.get_norm3(&v)
                     self._sort4(&dist4, &length)
 
-        return dist4[0], dist4[1], dist4[2], dist4[3]
-        #return dist4
+        return dist4
 
     cdef double _fdist2(self, double x, double y):
         cdef:
-            unsigned int i, j, ii
+            int i, j, ii
             double nx, ny, length, md
             double[2] grid, jitter, v
             double[2] p = [x, y]
@@ -118,7 +117,8 @@ cdef class CellularNoise(Noise):
         ny = floor(p[1] + 0.5)
 
         for j in range(3):
-            md = self.mod(<double>j, 2.0) - 0.5
+            # md = <double>j % 2 - 0.5
+            md = self.mod(<double>j, 2) - 0.5
             grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
             if abs(grid[1] - p[1]) - 0.5 > dist:
@@ -138,7 +138,7 @@ cdef class CellularNoise(Noise):
 
     cdef double _fdist3(self, double x, double y, double z):
         cdef:
-            unsigned int i, j, k, ii
+            int i, j, k, ii
             double nx, ny, nz, length, md
             double[3] grid, jitter, v
             double[3] p = [x, y, z]
@@ -149,14 +149,16 @@ cdef class CellularNoise(Noise):
         nz = floor(p[2] + 0.5)
 
         for k in range(3):
-            md = self.mod(<double>k, 2.0) - 0.5
+            # md = <double>k % 2 - 0.5
+            md = self.mod(<double>k, 2) - 0.5
             grid[2] = nz + self.sign_with_abs(&md) * ceil(k * 0.5)
 
             if abs(grid[2] - p[2]) - 0.5 > dist:
                 continue
 
             for j in range(3):
-                md = self.mod(<double>j, 2.0) - 0.5
+                # md = <double>j % 2 - 0.5
+                md = self.mod(<double>j, 2) - 0.5
                 grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
         
                 if abs(grid[1] - p[1]) - 0.5 > dist:

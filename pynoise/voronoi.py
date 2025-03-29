@@ -5,10 +5,11 @@ from .noise import Noise
 
 class VoronoiNoise(Noise):
 
-    def voronoi2(self, p):
+    def voronoi2(self, x, y):
         """Args:
-            p (numpy.ndarray): 2-dimensional array
+            x, y (float)
         """
+        p = np.array([x, y])
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
         lattice_pt = np.zeros(2)
@@ -29,10 +30,11 @@ class VoronoiNoise(Noise):
 
         return self.hash22(lattice_pt)
 
-    def voronoi3(self, p):
+    def voronoi3(self, x, y, z):
         """Args:
-            p (numpy.ndarray): 3-dimensional array
+            x, y, z (float)
         """
+        p = np.array([x, y, z])
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
         lattice_pt = np.zeros(3)
@@ -64,14 +66,14 @@ class VoronoiNoise(Noise):
         if gray:
             vec = np.array([0.3, 0.6, 0.2])
             arr = np.array(
-                [np.dot(self.voronoi3(np.array([x + t, y + t, t])), vec)
+                [np.dot(self.voronoi3(x + t, y + t, t), vec)
                     for y in np.linspace(0, grid, size)
                     for x in np.linspace(0, grid, size)]
             )
             arr = arr.reshape(size, size)
         else:
             arr = np.array(
-                [self.voronoi3(np.array([x + t, y + t, t]))
+                [self.voronoi3(x + t, y + t, t)
                     for y in np.linspace(0, grid, size)
                     for x in np.linspace(0, grid, size)]
             )
@@ -85,14 +87,14 @@ class VoronoiNoise(Noise):
         if gray:
             vec = np.array([0.3, 0.6])
             arr = np.array(
-                [np.dot(self.voronoi2(np.array([x, y]) + t), vec)
+                [np.dot(self.voronoi2(x + t, y + t), vec)
                     for y in np.linspace(0, grid, size)
                     for x in np.linspace(0, grid, size)]
             )
             arr = arr.reshape(size, size)
         else:
             arr = np.array(
-                [[*self.voronoi2(np.array([x, y]) + t), 1]
+                [[*self.voronoi2(x + t, y + t), 1]
                     for y in np.linspace(0, grid, size)
                     for x in np.linspace(0, grid, size)]
             )

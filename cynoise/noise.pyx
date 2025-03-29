@@ -131,7 +131,8 @@ cdef class Noise:
         return x + (y - x) * a
 
     cdef unsigned int step(self, double a, double x):
-        if x <= a:
+        # if x <= a:
+        if x < a:
             return 0
         return 1
 

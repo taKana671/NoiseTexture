@@ -1,7 +1,7 @@
 import numpy as np
 
-from .fBm import Fractal
-from .warping import DomainWarping
+from .fBm import Fractal2D
+from .warping import DomainWarping2D
 from .noise import Noise, cache
 
 
@@ -55,13 +55,13 @@ class PerlinNoise(Noise):
 
         return _u + _v
 
-    def pnoise2(self, p):
+    def pnoise2(self, x, y):
         """Args:
-            p (numpy.ndarray): 2-dimensional array
+            x, y (float)
         """
+        p = np.array([x, y])
         n = np.floor(p)
         f = p - n
-        # f, _ = np.modf(p)
 
         v = [self.gtable2(n + (arr := np.array([i, j])), f - arr)
              for j in range(2) for i in range(2)]
@@ -69,15 +69,16 @@ class PerlinNoise(Noise):
         f = self.quintic_hermite_interpolation(f)
         w0 = self.mix(v[0], v[1], f[0])
         w1 = self.mix(v[2], v[3], f[0])
+
         return 0.5 * self.mix(w0, w1, f[1]) + 0.5
 
-    def pnoise3(self, p):
+    def pnoise3(self, x, y, z):
         """Args:
-            p (numpy.ndarray): 3-dimensional array
+            x, y, z (float)
         """
+        p = np.array([x, y, z])
         n = np.floor(p)
         f = p - n
-        # f, _ = np.modf(p)
 
         # 0.70710678 = 1 / sqrt(2)
         v = [self.gtable3(n + (arr := np.array([i, j, k])), f - arr) * 0.70710678
@@ -86,13 +87,14 @@ class PerlinNoise(Noise):
         f = self.quintic_hermite_interpolation(f)
         w0 = self.mix(self.mix(v[0], v[1], f[0]), self.mix(v[2], v[3], f[0]), f[1])
         w1 = self.mix(self.mix(v[4], v[5], f[0]), self.mix(v[6], v[7], f[0]), f[1])
+
         return 0.5 * self.mix(w0, w1, f[2]) + 0.5
 
     def noise2(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.pnoise2(np.array([x, y]) + t)
+            [self.pnoise2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -103,7 +105,7 @@ class PerlinNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.pnoise3(np.array([x + t, y + t, t]))
+            [self.pnoise3(x + t, y + t, t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -112,10 +114,10 @@ class PerlinNoise(Noise):
 
     def fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal(self.pnoise2, gain, lacunarity, octaves)
+        noise = Fractal2D(self.pnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
-            [noise.fractal(np.array([x, y]) + t)
+            [noise.fractal(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -124,11 +126,11 @@ class PerlinNoise(Noise):
 
     def warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal(self.pnoise2)
-        warp = DomainWarping(noise.fractal, weight, octaves)
+        noise = Fractal2D(self.pnoise2)
+        warp = DomainWarping2D(noise.fractal, weight, octaves)
 
         arr = np.array(
-            [warp.warp_rot(np.array([x, y]) + t)
+            [warp.warp_rot(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -139,11 +141,11 @@ class PerlinNoise(Noise):
     def warp2(self, size=256, grid=4, t=None, octaves=4):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
-        noise = Fractal(self.pnoise2)
-        warp = DomainWarping(noise.fractal, weight=weight)
+        noise = Fractal2D(self.pnoise2)
+        warp = DomainWarping2D(noise.fractal, weight=weight)
 
         arr = np.array(
-            [warp.warp(np.array([x, y]))
+            [warp.warp(x, y)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
