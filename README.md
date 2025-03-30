@@ -4,7 +4,7 @@ This repository contains python and cython codes that can generate noise images,
 In the python modules, numpy, and in the Cython modules, C array is mainly used. Those modules have the same functions, which return the array to be converted to an image.
 Their difference is speed. See [speed comparison](#speed-comparison) result below.
 
-Using the texture_generator's methods, textures such as clouds and cubemaps can be procedurally create.
+Using the texture_generator's methods, textures such as clouds and cubemaps can be procedurally created.
 See [texture_generator](https://github.com/taKana671/texture_generator/tree/main).
 
 # Requirements
@@ -58,7 +58,8 @@ maker = Perlin(size=512, grid=8)
 A noise image is output as png file.   
 For more details of methods and parameters, please see source codes.
 
-![sample](https://github.com/user-attachments/assets/d8c7a581-de6b-4af6-90ad-a4d095d6a854)
+![Image](https://github.com/user-attachments/assets/e9e548d9-18f2-49f4-ac31-8c27d659a949)
+![Image](https://github.com/user-attachments/assets/b804c28b-dbb0-49bd-98e9-925670e1c1d3)
 
 # Speed ​​comparison
 
