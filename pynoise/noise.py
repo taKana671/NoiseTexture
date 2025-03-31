@@ -1,4 +1,5 @@
 import random
+from functools import wraps
 
 import numpy as np
 
@@ -8,11 +9,27 @@ u = np.array([1, 2, 3], dtype=np.uint32)
 UINT_MAX = np.iinfo(np.uint32).max
 
 
-class Noise:
+def cache(max_length):
+    def decoration(func):
+        dic = {}
 
-    def __init__(self, grid, size):
-        self.size = size
-        self.grid = grid
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if len(dic) > max_length:
+                dic.clear()
+
+            if (key := tuple(args[1])) in dic:
+                return dic[key]
+
+            ret = func(*args, **kwargs)
+            dic[key] = ret
+            return ret
+
+        return wrapper
+    return decoration
+
+
+class Noise:
 
     def mock_time(self):
         return random.uniform(0, 1000)
@@ -38,44 +55,47 @@ class Noise:
         n ^= n[[1, 2, 0]] << u
         n *= k
 
+    @cache(128)
     def hash21(self, p):
         n = p.astype(np.uint32)
-
-        if (key := tuple(n)) in self.hash:
-            return self.hash[key]
-
         self.uhash22(n)
         h = n[0] / UINT_MAX
-        self.hash[key] = h
+
         return h
 
+    @cache(128)
+    def hash31(self, p):
+        n = p.astype(np.uint32)
+        self.uhash33(n)
+        h = n[0] / UINT_MAX
+
+        return h
+
+    @cache(128)
     def hash22(self, p):
         n = p.astype(np.uint32)
-
-        if (key := tuple(n)) in self.hash:
-            return self.hash[key]
-
         self.uhash22(n)
         h = n / UINT_MAX
-        self.hash[key] = h
+
         return h
 
+    @cache(128)
     def hash33(self, p):
         n = p.astype(np.uint32)
-
-        if (key := tuple(n)) in self.hash:
-            return self.hash[key]
-
         self.uhash33(n)
         h = n / UINT_MAX
-        self.hash[key] = h
+
         return h
 
     def mix(self, x, y, a):
         return x + (y - x) * a
 
-    def step(self, a, x):
-        if x <= a:
+    def step(self, edge, x):
+        """Args:
+            edge (float): the location of the edge of the step function.
+            x (float): the value to be used to generate the step function.
+        """
+        if x < edge:
             return 0
         return 1
 
@@ -99,17 +119,16 @@ class Noise:
     def get_norm(self, vec):
         return sum(v ** 2 for v in vec) ** 0.5
 
-    def fade(self, x):
+    def hermite_interpolation(self, p):
+        return 3 * p**2 - 2 * p**3
+
+    def quintic_hermite_interpolation(self, x):
         return 6 * x**5 - 15 * x**4 + 10 * x**3
 
-    def wrap(self, t=None, rot=False):
-        t = self.mock_time() if t is None else t
-        self.hash = {}
-
-        arr = np.array(
-            [self.wrap2(x + t, y + t, rot)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
-        )
-        arr = arr.reshape(self.size, self.size)
-        return arr
+    def clamp(self, x, min_val, max_val):
+        """Args:
+            x (float): the value to constrain.
+            min_val (float): the lower end of the range into which to constrain x.
+            max_val (float): the upper end of the range into which to constrain x.
+        """
+        return min(max(x, min_val), max_val)

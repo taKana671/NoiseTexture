@@ -1,12 +1,9 @@
 import numpy as np
 
-from pynoise.noise import Noise
+from .noise import Noise
 
 
-class Cellular(Noise):
-
-    def __init__(self, grid=4, size=256):
-        super().__init__(grid, size)
+class CellularNoise(Noise):
 
     def sort4(self, dist4, length):
 
@@ -22,11 +19,12 @@ class Cellular(Noise):
         if self.step(length, dist4[3]):
             return np.array([*dist4[:3], length])
 
-    def fdist24(self, p):
+    def fdist24(self, px, py):
         """Compute the 1st, 2nd, 3rd and 4th 2D nearest neighbor distance.
             Args:
-                p (numpy.numpy.ndarray): the length is 2.
+                px, py (float)
         """
+        p = np.array([px, py])
         n = np.floor(p + 0.5)
         temp = 1.5 - np.abs(p - n)
         length = sum(v ** 2 for v in temp) ** 0.5
@@ -48,11 +46,12 @@ class Cellular(Noise):
 
         return dist4
 
-    def fdist34(self, p):
+    def fdist34(self, px, py, pz):
         """Compute the 1st, 2nd, 3rd and 4th 3D nearest neighbor distance.
             Args:
-                p (numpy.numpy.ndarray): the length is 3.
+                px, py, pz (float)
         """
+        p = np.array([px, py, pz])
         n = np.floor(p + 0.5)
         temp = 1.5 - np.abs(p - n)
         length = sum(v ** 2 for v in temp) ** 0.5
@@ -79,11 +78,12 @@ class Cellular(Noise):
 
         return dist4
 
-    def fdist2(self, p):
+    def fdist2(self, px, py):
         """Compute 2D nearest neighbor distance.
             Args:
-                p (numpy.numpy.ndarray): the length is 2.
+                px, py (float)
         """
+        p = np.array([px, py])
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
 
@@ -101,11 +101,12 @@ class Cellular(Noise):
 
         return dist
 
-    def fdist3(self, p):
+    def fdist3(self, px, py, pz):
         """Compute 3D nearest neighbor distance.
             Args:
-                p (numpy.numpy.ndarray): the length is 3.
+                px, py, pz (float)
         """
+        p = np.array([px, py, pz])
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
 
@@ -128,31 +129,29 @@ class Cellular(Noise):
 
         return dist
 
-    def noise2(self, t=None):
+    def noise2(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
-        self.hash = {}
 
         arr = np.array(
-            [self.fdist2(np.array([x + t, y + t]))
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [self.fdist2(x + t, y + t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
         return arr
 
-    def noise3(self, t=None):
+    def noise3(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
-        self.hash = {}
 
         arr = np.array(
-            [self.fdist3(np.array([x + t, y + t, t]))
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [self.fdist3(x + t, y + t, t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
         return arr
 
-    def noise24(self, nearest=2, t=None):
+    def noise24(self, size=256, grid=4, nearest=2, t=None):
         """Return numpy.ndarray to be convert an 2D image.
             Args:
                 nearest (int):
@@ -160,38 +159,35 @@ class Cellular(Noise):
                     must be from 1 to 4.
         """
         t = self.mock_time() if t is None else t
-        self.hash = {}
 
         arr = np.array(
-            [self.fdist24(np.array([x + t, y + t]))[nearest - 1]
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [self.fdist24(x + t, y + t)[nearest - 1]
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
         return arr
 
-    def cnoise2(self, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
+    def cnoise2(self, size=256, grid=4, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
         t = self.mock_time() if t is None else t
         wt = np.array([wx, wy, wz, ww])
-        self.hash = {}
 
         arr = np.array(
-            [abs(np.dot(wt, self.fdist24(np.array([x + t, y + t]))))
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [abs(np.dot(wt, self.fdist24(x + t, y + t)))
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
         return arr
 
-    def cnoise3(self, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
+    def cnoise3(self, size=256, grid=4, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
         t = self.mock_time() if t is None else t
         wt = np.array([wx, wy, wz, ww])
-        self.hash = {}
 
         arr = np.array(
-            [abs(np.dot(wt, self.fdist34(np.array([x + t, y + t, t]))))
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [abs(np.dot(wt, self.fdist34(x + t, y + t, t)))
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
         return arr

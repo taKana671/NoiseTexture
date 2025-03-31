@@ -3,15 +3,12 @@
 import numpy as np
 from libc.math cimport floor, ceil
 
-from cynoise.noise cimport Noise
+from .noise cimport Noise
 
 
-cdef class Voronoi(Noise):
+cdef class VoronoiNoise(Noise):
 
-    def __init__(self, grid=4, size=256):
-        super().__init__(grid, size)
-
-    cdef list voronoi2(self, double x, double y):
+    cdef list _voronoi2(self, double x, double y):
         cdef:
             int i, j, ii
             double nx, ny, length, md
@@ -23,7 +20,7 @@ cdef class Voronoi(Noise):
         ny = floor(p[1] + 0.5)
 
         for j in range(3):
-            md = <double>j % 2 - 0.5
+            md = self.mod(<double>j, 2.0)
             grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
             if abs(grid[1] - p[1]) - 0.5 > dist:
@@ -44,7 +41,7 @@ cdef class Voronoi(Noise):
         self.hash22(&lattice_pt, &h)
         return h
 
-    cdef list voronoi3(self, double x, double y, double z):
+    cdef list _voronoi3(self, double x, double y, double z):
         cdef:
             int i, j, k, ii
             double nx, ny, nz, length, md
@@ -57,14 +54,14 @@ cdef class Voronoi(Noise):
         nz = floor(p[2] + 0.5)
 
         for k in range(3):
-            md = <double>k % 2 - 0.5
+            md = self.mod(<double>k, 2.0)
             grid[2] = nz + self.sign_with_abs(&md) * ceil(k * 0.5)
 
             if abs(grid[2] - p[2]) - 0.5 > dist:
                 continue
 
             for j in range(3):
-                md = <double>j % 2 - 0.5
+                md = self.mod(<double>j, 2.0)
                 grid[1] = ny + self.sign_with_abs(&md) * ceil(j * 0.5)
 
                 if abs(grid[1] - p[1]) - 0.5 > dist:
@@ -85,44 +82,50 @@ cdef class Voronoi(Noise):
         self.hash33(&lattice_pt, &h)
         return h
 
-    cpdef noise3(self, gray=True, t=None):
+    cpdef list voronoi2(self, double x, double y):
+        return self._voronoi2(x, y)
+
+    cpdef list voronoi3(self, double x, double y, double z):
+        return self._voronoi3(x, y, z)
+
+    cpdef noise3(self, size=256, grid=4, gray=True, t=None):
         t = self.mock_time() if t is None else float(t)
 
         if gray:
             vec = [0.3, 0.6, 0.2]
             arr = np.array(
-                [np.dot(self.voronoi3(x + t, y + t, t), vec)
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [np.dot(self._voronoi3(x + t, y + t, t), vec)
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size)
+            arr = arr.reshape(size, size)
         else:
             arr = np.array(
-                [self.voronoi3(x + t, y + t, t)
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [self._voronoi3(x + t, y + t, t)
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size, 3)
+            arr = arr.reshape(size, size, 3)
 
         return arr
 
-    cpdef noise2(self, gray=True, t=None):
+    cpdef noise2(self, size=256, grid=4, gray=True, t=None):
         t = self.mock_time() if t is None else float(t)
 
         if gray:
             vec = [0.3, 0.6]
             arr = np.array(
-                [np.dot(self.voronoi2(x + t, y + t), vec)
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [np.dot(self._voronoi2(x + t, y + t), vec)
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size)
+            arr = arr.reshape(size, size)
         else:
             arr = np.array(
-                [[*self.voronoi2(x + t, y + t), 1]
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [[*self._voronoi2(x + t, y + t), 1]
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size, 3)
+            arr = arr.reshape(size, size, 3)
 
         return arr

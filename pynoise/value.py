@@ -2,102 +2,66 @@ import numpy as np
 
 from .fBm import Fractal2D
 from .warping import DomainWarping2D
-from .noise import Noise, cache
+from .noise import Noise
 
 
-class PerlinNoise(Noise):
+class ValueNoise(Noise):
 
-    @cache(128)
-    def hash33(self, p):
-        n = p.astype(np.uint32)
-        self.uhash33(n)
-        idx = n[0] >> 28
-
-        return idx
-
-    @cache(128)
-    def hash22(self, p):
-        n = p.astype(np.uint32)
-        self.uhash22(n)
-        idx = n[0] >> 29
-
-        return idx
-
-    def gtable2(self, lattice, p):
-        """Args:
-            lattice, p (numpy.ndarray): 2-dimensional array
-        """
-        idx = self.hash22(lattice)
-
-        u = (p[0] if idx < 4 else p[1]) * 0.92387953   # 0.92387953 = cos(pi/8)
-        v = (p[1] if idx < 4 else p[0]) * 0.38268343   # 0.38268343 = sin(pi/8)
-        _u = u if idx & 1 == 0 else -u
-        _v = v if idx & 2 == 0 else -v
-
-        return _u + _v
-
-    def gtable3(self, lattice, p):
-        """Args:
-            lattice, p (numpy.ndarray): 3-dimensional array
-        """
-        idx = self.hash33(lattice)
-        u = p[0] if idx < 8 else p[1]
-
-        if idx < 4:
-            v = p[1]
-        elif idx == 12 or idx == 14:
-            v = p[0]
-        else:
-            v = p[2]
-
-        _u = u if idx & 1 == 0 else -u
-        _v = v if idx & 2 == 0 else -v
-
-        return _u + _v
-
-    def pnoise2(self, x, y):
+    def vnoise2(self, x, y):
         """Args:
             x, y (float)
         """
         p = np.array([x, y])
         n = np.floor(p)
+        v = [self.hash21(n + np.array([i, j])) for j in range(2) for i in range(2)]
+
         f = p - n
-
-        v = [self.gtable2(n + (arr := np.array([i, j])), f - arr)
-             for j in range(2) for i in range(2)]
-
+        # f = self.hermite_interpolation(f)
         f = self.quintic_hermite_interpolation(f)
         w0 = self.mix(v[0], v[1], f[0])
         w1 = self.mix(v[2], v[3], f[0])
 
-        return 0.5 * self.mix(w0, w1, f[1]) + 0.5
+        return self.mix(w0, w1, f[1])
 
-    def pnoise3(self, x, y, z):
+    def vnoise3(self, x, y, z):
         """Args:
             x, y, z (float)
         """
         p = np.array([x, y, z])
         n = np.floor(p)
-        f = p - n
-
-        # 0.70710678 = 1 / sqrt(2)
-        v = [self.gtable3(n + (arr := np.array([i, j, k])), f - arr) * 0.70710678
+        v = [self.hash31(n + np.array([i, j, k]))
              for k in range(2) for j in range(2) for i in range(2)]
 
+        f = p - n
+        # f = self.hermite_interpolation(f)
         f = self.quintic_hermite_interpolation(f)
         w0 = self.mix(self.mix(v[0], v[1], f[0]), self.mix(v[2], v[3], f[0]), f[1])
         w1 = self.mix(self.mix(v[4], v[5], f[0]), self.mix(v[6], v[7], f[0]), f[1])
 
-        return 0.5 * self.mix(w0, w1, f[2]) + 0.5
+        return self.mix(w0, w1, f[2])
+
+    def vgrad(self, x, y):
+        """Args:
+            x, y (float)
+        """
+        eps = 0.001
+        arr = np.array([
+            self.vnoise2(x + eps, y) - self.vnoise2(x - eps, y),
+            self.vnoise2(x, y + eps) - self.vnoise2(x, y - eps)
+        ])
+
+        grad = 0.5 * arr / eps
+        return np.dot(np.ones(2), grad)
 
     def noise2(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.pnoise2(x + t, y + t)
+            [self.vnoise2(x + t, y + t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
+
         arr = arr.reshape(size, size)
         return arr
 
@@ -105,16 +69,29 @@ class PerlinNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.pnoise3(x + t, y + t, t)
+            [self.vnoise3(x + t, y + t, t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
+
+        arr = arr.reshape(size, size)
+        return arr
+
+    def grad2(self, size=256, grid=4, t=None):
+        t = self.mock_time() if t is None else t
+
+        arr = np.array(
+            [self.vgrad(x + t, y + t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
+        )
+
         arr = arr.reshape(size, size)
         return arr
 
     def fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal2D(self.pnoise2, gain, lacunarity, octaves)
+        noise = Fractal2D(self.vnoise2, gain, lacunarity, octaves)
 
         arr = np.array(
             [noise.fractal(x + t, y + t)
@@ -126,7 +103,7 @@ class PerlinNoise(Noise):
 
     def warp2_rot(self, size=256, grid=4, t=None, weight=1, octaves=4):
         t = self.mock_time() if t is None else t
-        noise = Fractal2D(self.pnoise2)
+        noise = Fractal2D(self.vnoise2)
         warp = DomainWarping2D(noise.fractal, weight, octaves)
 
         arr = np.array(
@@ -138,10 +115,10 @@ class PerlinNoise(Noise):
         arr = arr.reshape(size, size)
         return arr
 
-    def warp2(self, size=256, grid=4, t=None, octaves=4):
+    def warp2(self, size=256, grid=4, octaves=4, t=None):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
-        noise = Fractal2D(self.pnoise2)
+        noise = Fractal2D(self.vnoise2)
         warp = DomainWarping2D(noise.fractal, weight=weight)
 
         arr = np.array(

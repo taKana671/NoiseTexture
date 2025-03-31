@@ -1,37 +1,17 @@
 # cython: language_level=3
 
-import math
 import numpy as np
-cimport numpy as cnp
+# cimport numpy as cnp
 from libc.math cimport floor, cos, sin, pi
 
-from cynoise.noise cimport Noise
+from .fBm cimport Fractal2D
+from .noise cimport Noise
+from .warping cimport DomainWarping2D
 
 
-cdef class Perlin(Noise):
-
-    cdef:
-        double weight
-
-    def __init__(self, weight=0.5, grid=4, size=256):
-        super().__init__(grid, size)
-        self.weight = weight
-
-    cdef double wrap2(self, double x, double y, bint rot=False):
-        cdef:
-            double v = 0.0
-            double cx, sy, _x, _y
-
-        for _ in range(4):
-            cx = cos(2 * pi * v) if rot else v
-            sy = sin(2 * pi * v) if rot else v
-            _x = x + self.weight * cx
-            _y = y + self.weight * sy
-            v = self.pnoise2(_x, _y)
-
-        return v
+cdef class PerlinNoise(Noise):
     
-    cdef double gtable2(self, double[2] *lattice, double[2] *p):
+    cdef double _gtable2(self, double[2] *lattice, double[2] *p):
         cdef:
             unsigned int idx, i
             double u, v, _u, _v
@@ -50,7 +30,7 @@ cdef class Perlin(Noise):
 
         return _u + _v
 
-    cdef double gtable3(self, double[3] *lattice, double[3] *p):
+    cdef double _gtable3(self, double[3] *lattice, double[3] *p):
         cdef:
             unsigned int idx, i
             double u, v, _u, _v
@@ -75,7 +55,7 @@ cdef class Perlin(Noise):
 
         return _u + _v
 
-    cdef double pnoise2(self, double x, double y):
+    cdef double _pnoise2(self, double x, double y):
         cdef:
             double nx, ny, fx, fy, w0, w1
             unsigned int i, j
@@ -94,16 +74,16 @@ cdef class Perlin(Noise):
             for i in range(2):
                 arr_n[0] = nx + i
                 arr_f[0] = fx - i
-                v[i + 2 * j] = self.gtable2(&arr_n, &arr_f)
+                v[i + 2 * j] = self._gtable2(&arr_n, &arr_f)
 
-        fx = self.fade(fx)
-        fy = self.fade(fy)
+        fx = self.quintic_hermite_interpolation(fx)
+        fy = self.quintic_hermite_interpolation(fy)
         w0 = self.mix(v[0], v[1], fx)
         w1 = self.mix(v[2], v[3], fx)
 
         return 0.5 * self.mix(w0, w1, fy) + 0.5
 
-    cdef double pnoise3(self, double x, double y, double z):
+    cdef double _pnoise3(self, double x, double y, double z):
         cdef:
             double fx, fy, fz, nx, ny, nz, w0, w1
             unsigned int i, j, k
@@ -128,34 +108,83 @@ cdef class Perlin(Noise):
                 for i in range(2):
                     arr_n[0] = nx + i
                     arr_f[0] = fx - i
-                    v[i + 2 * j + 4 * k] = self.gtable3(&arr_n, &arr_f) * 0.70710678
+                    v[i + 2 * j + 4 * k] = self._gtable3(&arr_n, &arr_f) * 0.70710678
 
-        fx = self.fade(fx)
-        fy = self.fade(fy)
-        fz = self.fade(fz)
+        fx = self.quintic_hermite_interpolation(fx)
+        fy = self.quintic_hermite_interpolation(fy)
+        fz = self.quintic_hermite_interpolation(fz)
         w0 = self.mix(self.mix(v[0], v[1], fx), self.mix(v[2], v[3], fx), fy)
         w1 = self.mix(self.mix(v[4], v[5], fx), self.mix(v[6], v[7], fx), fy)
 
         return 0.5 * self.mix(w0, w1, fz) + 0.5
 
-    cpdef noise2(self, t=None):
+    cpdef double pnoise3(self, double x, double y, double z):
+        return self._pnoise3(x, y, z)
+
+    cpdef double pnoise2(self, double x, double y):
+        return self._pnoise2(x, y)
+
+    cpdef noise2(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
-            [self.pnoise2(x + t, y + t)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [self._pnoise2(x + t, y + t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
         return arr
 
-    cpdef noise3(self, t=None):
+    cpdef noise3(self, size=256, grid=4, t=None):
         t = self.mock_time() if t is None else float(t)
 
         arr = np.array(
-            [self.pnoise3(x + t, y + t, t)
-                for y in np.linspace(0, self.grid, self.size)
-                for x in np.linspace(0, self.grid, self.size)]
+            [self._pnoise3(x + t, y + t, t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
         )
-        arr = arr.reshape(self.size, self.size)
+        arr = arr.reshape(size, size)
+        return arr
+
+    cpdef fractal2(self, size=256, grid=4, t=None, gain=0.5, lacunarity=2.01, octaves=4):
+        t = self.mock_time() if t is None else t
+        noise = Fractal2D(self._pnoise2, gain, lacunarity, octaves)
+
+        arr = np.array(
+            [noise._fractal2(x + t, y + t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
+        )
+        arr = arr.reshape(size, size)
+        return arr
+
+    cpdef warp2_rot(self, size=256, grid=4, t=None, weight=1.0, octaves=4):
+        t = self.mock_time() if t is None else t
+        noise = Fractal2D(self._pnoise2)
+        warp = DomainWarping2D(noise._fractal2, weight=weight, octaves=octaves)
+
+        arr = np.array(
+            [warp._warp2_rot(x + t, y + t)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
+        )
+
+        arr = arr.reshape(size, size)
+        return arr
+
+    cpdef warp2(self, size=256, grid=4, t=None, octaves=4):
+        t = self.mock_time() if t is None else t
+        mod = self.mod(t, 10)
+        weight = abs(mod - 5.0)
+        # weight = abs(t % 10 - 5.0) <- 't % 10' maybe causes warning C4244: '=': conversion from 'Py_ssize_t' to 'long',
+        noise = Fractal2D(self._pnoise2)
+        warp = DomainWarping2D(noise._fractal2, weight=weight, octaves=octaves)
+
+        arr = np.array(
+            [warp._warp2(x, y)
+                for y in np.linspace(0, grid, size)
+                for x in np.linspace(0, grid, size)]
+        )
+
+        arr = arr.reshape(size, size)
         return arr

@@ -4,12 +4,11 @@
 cdef class Noise:
 
     cdef:
-        int grid
-        int size
         unsigned int[3] k
         unsigned int[3] u
+        unsigned int uint_max
 
-    cdef void uhash11(self, unsigned int *n)
+    cdef unsigned int uhash11(self, unsigned int n)
 
     cdef void uhash22(self, unsigned int[2] *n)
 
@@ -17,11 +16,15 @@ cdef class Noise:
 
     cdef double hash21(self, double[2] *p)
 
+    cdef double hash31(self, double[3] *p)
+
     cdef void hash22(self, double[2] *p, double[2] *h)
 
     cdef void hash33(self, double[3] *p, double[3] *h)
 
-    cdef double fade(self, double x)
+    cdef double hermite_interpolation(self, double x)
+
+    cdef double quintic_hermite_interpolation(self, double x)
 
     cdef double mix(self, double x, double y, double a)
 
@@ -35,9 +38,15 @@ cdef class Noise:
 
     cdef (double, double) xy2pol(self, double x, double y)
 
-    cdef double wrap2(self, double x, double y, bint rot=*)
+    cdef double mod(self, double x, double y)
 
-    cpdef wrap(self, rot=*, t=*)
+    cdef double inner_product22(self, double[2] *arr1, double[2] *arr2)
 
+    cdef double inner_product33(self, double[3] *arr1, double[3] *arr2)
 
+    cdef double inner_product44(self, double[4] *arr1, double[4] *arr2)
+
+    cdef double inner_product31(self, double[3] *arr, double *v)
+
+    cdef double inner_product21(self, double[2] *arr, double *v)
 

@@ -1,16 +1,15 @@
 import numpy as np
 
-from pynoise.noise import Noise
+from .noise import Noise
 
 
-class Voronoi(Noise):
+class VoronoiNoise(Noise):
 
-    def __init__(self, grid=4, size=256):
-        super().__init__(grid, size)
-        self.size = size
-        self.grid = grid
-
-    def voronoi2(self, p):
+    def voronoi2(self, x, y):
+        """Args:
+            x, y (float)
+        """
+        p = np.array([x, y])
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
         lattice_pt = np.zeros(2)
@@ -31,7 +30,11 @@ class Voronoi(Noise):
 
         return self.hash22(lattice_pt)
 
-    def voronoi3(self, p):
+    def voronoi3(self, x, y, z):
+        """Args:
+            x, y, z (float)
+        """
+        p = np.array([x, y, z])
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
         lattice_pt = np.zeros(3)
@@ -57,46 +60,44 @@ class Voronoi(Noise):
 
         return self.hash33(lattice_pt)
 
-    def noise3(self, gray=True, t=None):
+    def noise3(self, size=256, grid=4, gray=True, t=None):
         t = self.mock_time() if t is None else t
-        self.hash = {}
 
         if gray:
             vec = np.array([0.3, 0.6, 0.2])
             arr = np.array(
-                [np.dot(self.voronoi3(np.array([x + t, y + t, t])), vec)
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [np.dot(self.voronoi3(x + t, y + t, t), vec)
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size)
+            arr = arr.reshape(size, size)
         else:
             arr = np.array(
-                [self.voronoi3(np.array([x + t, y + t, t]))
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [self.voronoi3(x + t, y + t, t)
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size, 3)
+            arr = arr.reshape(size, size, 3)
 
         return arr
 
-    def noise2(self, gray=True, t=None):
+    def noise2(self, size=256, grid=4, gray=True, t=None):
         t = self.mock_time() if t is None else t
-        self.hash = {}
 
         if gray:
             vec = np.array([0.3, 0.6])
             arr = np.array(
-                [np.dot(self.voronoi2(np.array([x + t, y + t])), vec)
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [np.dot(self.voronoi2(x + t, y + t), vec)
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size)
+            arr = arr.reshape(size, size)
         else:
             arr = np.array(
-                [[*self.voronoi2(np.array([x + t, y + t])), 1]
-                    for y in np.linspace(0, self.grid, self.size)
-                    for x in np.linspace(0, self.grid, self.size)]
+                [[*self.voronoi2(x + t, y + t), 1]
+                    for y in np.linspace(0, grid, size)
+                    for x in np.linspace(0, grid, size)]
             )
-            arr = arr.reshape(self.size, self.size, 3)
+            arr = arr.reshape(size, size, 3)
 
         return arr
