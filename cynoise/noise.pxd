@@ -50,3 +50,8 @@ cdef class Noise:
 
     cdef double inner_product21(self, double[2] *arr, double *v)
 
+    cdef double clamp(self, double x, double a, double b)
+
+    cdef double smoothstep1(self, double edge0, double edge1, double x)
+
+    cdef void normalize2(self, double[2] *p, double[2] *nm)

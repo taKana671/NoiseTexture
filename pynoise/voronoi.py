@@ -61,6 +61,8 @@ class VoronoiNoise(Noise):
     def normalize(self, p):
         if (norm := np.sqrt(np.sum(p**2))) == 0:
             norm = 1
+
+        # print(p / norm)
         return p / norm
 
     def voronoi2(self, x, y):
