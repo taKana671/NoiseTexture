@@ -59,7 +59,7 @@ A noise image is output as png file.
 For more details of methods and parameters, please see source codes.
 
 ![Image](https://github.com/user-attachments/assets/e9e548d9-18f2-49f4-ac31-8c27d659a949)
-![Image](https://github.com/user-attachments/assets/b804c28b-dbb0-49bd-98e9-925670e1c1d3)
+![Image](https://github.com/user-attachments/assets/b9acb5c4-3ed9-4953-a748-ad54d392a99a)
 
 # Speed ​​comparison
 
