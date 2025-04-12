@@ -51,21 +51,27 @@ cdef class Noise:
         n[0][1] *= self.k[1]
 
     cdef void uhash33(self, unsigned int[3] *n):
-        n[0][0] ^= n[0][1] << self.u[0]
-        n[0][1] ^= n[0][2] << self.u[1]
-        n[0][2] ^= n[0][0] << self.u[2]
+        cdef:
+            unsigned int[3] tmp
 
-        n[0][0] ^= n[0][1] >> self.u[0]
-        n[0][1] ^= n[0][2] >> self.u[1]
-        n[0][2] ^= n[0][0] >> self.u[2]
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[2] << self.u[1]
+        n[0][2] ^= tmp[0] << self.u[2]
+
+        tmp = n[0]
+        n[0][0] ^= tmp[1] >> self.u[0]
+        n[0][1] ^= tmp[2] >> self.u[1]
+        n[0][2] ^= tmp[0] >> self.u[2]
 
         n[0][0] *= self.k[0]
         n[0][1] *= self.k[1]
         n[0][2] *= self.k[2]
 
-        n[0][0] ^= n[0][1] << self.u[0]
-        n[0][1] ^= n[0][2] << self.u[1]
-        n[0][2] ^= n[0][0] << self.u[2] 
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[2] << self.u[1]
+        n[0][2] ^= tmp[0] << self.u[2] 
 
         n[0][0] *= self.k[0]
         n[0][1] *= self.k[1]
@@ -136,6 +142,13 @@ cdef class Noise:
     cdef double mix(self, double x, double y, double a):
         return x + (y - x) * a
 
+    cdef void mix3(self, double[3] *x, double[3] *y, double a, double[3] *m):
+        cdef:
+            int i
+
+        for i in range(3):
+            m[0][i] = x[0][i] + (y[0][i] - x[0][i]) * a
+
     cdef unsigned int step(self, double a, double x):
         if x < a:
             return 0
@@ -145,7 +158,7 @@ cdef class Noise:
         return fmin(fmax(x, a), b)
 
     @cython.cdivision(True)
-    cdef double smoothstep1(self, double edge0, double edge1, double x):
+    cdef double smoothstep(self, double edge0, double edge1, double x):
         t = self.clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
         return t * t * (3.0 - 2.0 * t)
 
@@ -241,4 +254,17 @@ cdef class Noise:
             norm = 1.0
 
         for i in range(2):
+            nm[0][i] = p[0][i] / norm
+    
+    @cython.cdivision(True)
+    cdef void normalize3(self, double[3] *p, double[3] *nm):
+        cdef:
+            double norm
+            int i
+        
+        norm = self.get_norm3(p)
+        if norm == 0.0:
+            norm = 1.0
+
+        for i in range(3):
             nm[0][i] = p[0][i] / norm

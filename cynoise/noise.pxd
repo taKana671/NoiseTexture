@@ -52,6 +52,10 @@ cdef class Noise:
 
     cdef double clamp(self, double x, double a, double b)
 
-    cdef double smoothstep1(self, double edge0, double edge1, double x)
+    cdef double smoothstep(self, double edge0, double edge1, double x)
 
     cdef void normalize2(self, double[2] *p, double[2] *nm)
+
+    cdef void normalize3(self, double[3] *p, double[3] *nm)
+
+    cdef void mix3(self, double[3] *x, double[3] *y, double a, double[3] *m)
