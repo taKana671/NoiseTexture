@@ -5,7 +5,7 @@ import random
 import cython
 # cimport numpy as np
 import numpy as np
-from libc.math cimport atan2, cos, sin, pi, floor
+from libc.math cimport atan2, cos, sin, pi, floor, fmax, fmin
 
 
 cdef class Noise:
@@ -29,37 +29,49 @@ cdef class Noise:
         return n
 
     cdef void uhash22(self, unsigned int[2] *n):
-        n[0][0] ^= n[0][1] << self.u[0]
-        n[0][1] ^= n[0][0] << self.u[1]
+        cdef:
+            unsigned int[2] tmp
 
-        n[0][0] ^= n[0][1] >> self.u[0]
-        n[0][1] ^= n[0][0] >> self.u[1]
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[0] << self.u[1]
+
+        tmp = n[0]
+        n[0][0] ^= tmp[1] >> self.u[0]
+        n[0][1] ^= tmp[0] >> self.u[1]
 
         n[0][0] *= self.k[0]
         n[0][1] *= self.k[1]
 
-        n[0][0] ^= n[0][1] << self.u[0]
-        n[0][1] ^= n[0][0] << self.u[1]
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[0] << self.u[1]
 
         n[0][0] *= self.k[0]
         n[0][1] *= self.k[1]
 
     cdef void uhash33(self, unsigned int[3] *n):
-        n[0][0] ^= n[0][1] << self.u[0]
-        n[0][1] ^= n[0][2] << self.u[1]
-        n[0][2] ^= n[0][0] << self.u[2]
+        cdef:
+            unsigned int[3] tmp
 
-        n[0][0] ^= n[0][1] >> self.u[0]
-        n[0][1] ^= n[0][2] >> self.u[1]
-        n[0][2] ^= n[0][0] >> self.u[2]
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[2] << self.u[1]
+        n[0][2] ^= tmp[0] << self.u[2]
+
+        tmp = n[0]
+        n[0][0] ^= tmp[1] >> self.u[0]
+        n[0][1] ^= tmp[2] >> self.u[1]
+        n[0][2] ^= tmp[0] >> self.u[2]
 
         n[0][0] *= self.k[0]
         n[0][1] *= self.k[1]
         n[0][2] *= self.k[2]
 
-        n[0][0] ^= n[0][1] << self.u[0]
-        n[0][1] ^= n[0][2] << self.u[1]
-        n[0][2] ^= n[0][0] << self.u[2] 
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[2] << self.u[1]
+        n[0][2] ^= tmp[0] << self.u[2] 
 
         n[0][0] *= self.k[0]
         n[0][1] *= self.k[1]
@@ -130,17 +142,24 @@ cdef class Noise:
     cdef double mix(self, double x, double y, double a):
         return x + (y - x) * a
 
+    cdef void mix3(self, double[3] *x, double[3] *y, double a, double[3] *m):
+        cdef:
+            int i
+
+        for i in range(3):
+            m[0][i] = x[0][i] + (y[0][i] - x[0][i]) * a
+
     cdef unsigned int step(self, double a, double x):
-        # if x <= a:
         if x < a:
             return 0
         return 1
 
-    def smoothstep(self, edge0, edge1, x):
-        """Args:
-            edge0, edge1, x (float)
-        """
-        t = np.clip((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+    cdef double clamp(self, double x, double a, double b):
+        return fmin(fmax(x, a), b)
+
+    @cython.cdivision(True)
+    cdef double smoothstep(self, double edge0, double edge1, double x):
+        t = self.clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
         return t * t * (3.0 - 2.0 * t)
 
     @cython.cdivision(True)
@@ -223,3 +242,29 @@ cdef class Noise:
             inner += arr[0][i] * v[0]
 
         return inner
+    
+    @cython.cdivision(True)
+    cdef void normalize2(self, double[2] *p, double[2] *nm):
+        cdef:
+            double norm
+            int i
+        
+        norm = self.get_norm2(p)
+        if norm == 0.0:
+            norm = 1.0
+
+        for i in range(2):
+            nm[0][i] = p[0][i] / norm
+    
+    @cython.cdivision(True)
+    cdef void normalize3(self, double[3] *p, double[3] *nm):
+        cdef:
+            double norm
+            int i
+        
+        norm = self.get_norm3(p)
+        if norm == 0.0:
+            norm = 1.0
+
+        for i in range(3):
+            nm[0][i] = p[0][i] / norm

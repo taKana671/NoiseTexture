@@ -59,7 +59,7 @@ A noise image is output as png file.
 For more details of methods and parameters, please see source codes.
 
 ![Image](https://github.com/user-attachments/assets/e9e548d9-18f2-49f4-ac31-8c27d659a949)
-![Image](https://github.com/user-attachments/assets/b804c28b-dbb0-49bd-98e9-925670e1c1d3)
+![Image](https://github.com/user-attachments/assets/b9acb5c4-3ed9-4953-a748-ad54d392a99a)
 
 # Speed ​​comparison
 
@@ -67,8 +67,8 @@ The execution time of each methods were measured like below.
 
 ```
 maker = VoroniNoise()
-reslt = %timeit -o maker.noise2()
-print(reslt.best, reslt.loops, reslt.repeat)
+result = %timeit -o maker.noise2()
+print(result.best, result.loops, result.repeat)
 ```
 
 <table>
@@ -195,21 +195,75 @@ print(reslt.best, reslt.loops, reslt.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise2</td>
-      <td>1.464140</td>
+      <td>VoronoiNoise.noise2(gray=True)</td>
+      <td>1.782102</td>
       <td>1</td>
       <td>7</td>
-      <td>0.106078</td>
+      <td>0.113907</td>
       <td>10</td>
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise3</td>
-      <td>4.657867</td>
+      <td>VoronoiNoise.noise2(gray=False)</td>
+      <td>1.798717</td>
       <td>1</td>
       <td>7</td>
-      <td>0.184484</td>
+      <td>0.063547</td>
       <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiNoise.noise3(gray=True)</td>
+      <td>4.200216</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.179295</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiNoise.noise3(gray=False)</td>
+      <td>4.116465</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.117078</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiNoise.edge2(bw=True)</td>
+      <td>16.96586</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.195019</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiNoise.edge2(bw=False)</td>
+      <td>19.20286</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.253569</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiNoise.edge3(bw=True)</td>
+      <td>83.08460</td>
+      <td>1</td>
+      <td>7</td>
+      <td>1.026584</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiNoise.edge3(bw=False)</td>
+      <td>86.91529</td>
+      <td>1</td>
+      <td>7</td>
+      <td>1.116789</td>
+      <td>1</td>
       <td>7</td>
     </tr>
     <tr>
