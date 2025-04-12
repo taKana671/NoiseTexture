@@ -195,7 +195,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise2(gray=True)</td>
+      <td>VoronoiNoise.noise2()</td>
       <td>1.782102</td>
       <td>1</td>
       <td>7</td>
@@ -204,16 +204,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise2(gray=False)</td>
-      <td>1.798717</td>
-      <td>1</td>
-      <td>7</td>
-      <td>0.063547</td>
-      <td>10</td>
-      <td>7</td>
-    </tr>
-    <tr>
-      <td>VoronoiNoise.noise3(gray=True)</td>
+      <td>VoronoiNoise.noise3()</td>
       <td>4.200216</td>
       <td>1</td>
       <td>7</td>
@@ -222,16 +213,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise3(gray=False)</td>
-      <td>4.116465</td>
-      <td>1</td>
-      <td>7</td>
-      <td>0.117078</td>
-      <td>10</td>
-      <td>7</td>
-    </tr>
-    <tr>
-      <td>VoronoiNoise.edge2(bw=True)</td>
+      <td>VoronoiNoise.edge2()</td>
       <td>16.96586</td>
       <td>1</td>
       <td>7</td>
@@ -240,29 +222,11 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.edge2(bw=False)</td>
-      <td>19.20286</td>
-      <td>1</td>
-      <td>7</td>
-      <td>0.253569</td>
-      <td>1</td>
-      <td>7</td>
-    </tr>
-    <tr>
-      <td>VoronoiNoise.edge3(bw=True)</td>
+      <td>VoronoiNoise.edge3()</td>
       <td>83.08460</td>
       <td>1</td>
       <td>7</td>
       <td>1.026584</td>
-      <td>1</td>
-      <td>7</td>
-    </tr>
-    <tr>
-      <td>VoronoiNoise.edge3(bw=False)</td>
-      <td>86.91529</td>
-      <td>1</td>
-      <td>7</td>
-      <td>1.116789</td>
       <td>1</td>
       <td>7</td>
     </tr>
