@@ -58,8 +58,9 @@ maker = PerlinNoise(size=512, grid=8)
 A noise image is output as png file.   
 For more details of methods and parameters, please see source codes.
 
-![Image](https://github.com/user-attachments/assets/e9e548d9-18f2-49f4-ac31-8c27d659a949)
-![Image](https://github.com/user-attachments/assets/b9acb5c4-3ed9-4953-a748-ad54d392a99a)
+![Image](https://github.com/user-attachments/assets/9ab46f12-6e88-451b-ab8a-763be564c3c2)
+![Image](https://github.com/user-attachments/assets/8330cbda-6c3a-4637-ba45-1f97d6b29ab9)
+![Image](https://github.com/user-attachments/assets/e5edc685-f935-48be-a1cc-52366d0eda0a)
 
 # Speed ​​comparison
 
