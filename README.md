@@ -214,7 +214,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.edge2()</td>
+      <td>VoronoiEdges.edge2()</td>
       <td>16.96586</td>
       <td>1</td>
       <td>7</td>
@@ -223,11 +223,29 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.edge3()</td>
+      <td>VoronoiEdges.edge3()</td>
       <td>83.08460</td>
       <td>1</td>
       <td>7</td>
       <td>1.026584</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiRoundEdges.round2()</td>
+      <td>18.23457</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.245364</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>VoronoiRoundEdges.round3()</td>
+      <td>84.45329</td>
+      <td>1</td>
+      <td>7</td>
+      <td>1.233588</td>
       <td>1</td>
       <td>7</td>
     </tr>
@@ -259,7 +277,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <td>SimplexNoise.fractal3</td>
-      <td>17.359708</td>
+      <td>17.35970</td>
       <td>1</td>
       <td>7</td>
       <td>0.083178</td>
