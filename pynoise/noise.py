@@ -132,3 +132,9 @@ class Noise:
             max_val (float): the upper end of the range into which to constrain x.
         """
         return min(max(x, min_val), max_val)
+
+    def normalize(self, p):
+        if (norm := np.sqrt(np.sum(p**2))) == 0:
+            norm = 1
+
+        return p / norm
