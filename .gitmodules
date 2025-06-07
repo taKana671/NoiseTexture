@@ -1,3 +1,6 @@
-[submodule "texture_generator"]
-	path = texture_generator
-	url = https://github.com/taKana671/texture_generator.git
+[submodule "cynoise"]
+	path = cynoise
+	url = https://github.com/taKana671/cynoise.git
+[submodule "pynoise"]
+	path = pynoise
+	url = https://github.com/taKana671/pynoise.git
