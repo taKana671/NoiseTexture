@@ -18,9 +18,9 @@ Their difference is speed. See [speed comparison](#speed-comparison) result belo
 
 # Building Cython code
 
-### Clone this repository with submodule.
+### Clone this repository.
 ```
-git clone --recursive https://github.com/taKana671/NoiseTexture.git
+git clone https://github.com/taKana671/NoiseTexture.git
 ```
 
 ### Build cython code.
@@ -193,7 +193,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise2()</td>
+      <td>VoronoiNoise.noise2</td>
       <td>1.782102</td>
       <td>1</td>
       <td>7</td>
@@ -202,7 +202,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiNoise.noise3()</td>
+      <td>VoronoiNoise.noise3</td>
       <td>4.200216</td>
       <td>1</td>
       <td>7</td>
@@ -211,7 +211,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiEdges.edge2()</td>
+      <td>VoronoiEdges.edge2</td>
       <td>16.96586</td>
       <td>1</td>
       <td>7</td>
@@ -220,7 +220,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiEdges.edge3()</td>
+      <td>VoronoiEdges.edge3</td>
       <td>83.08460</td>
       <td>1</td>
       <td>7</td>
@@ -229,7 +229,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiRoundEdges.round2()</td>
+      <td>VoronoiRoundEdges.round2</td>
       <td>18.23457</td>
       <td>1</td>
       <td>7</td>
@@ -238,7 +238,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiRoundEdges.round3()</td>
+      <td>VoronoiRoundEdges.round3</td>
       <td>84.45329</td>
       <td>1</td>
       <td>7</td>
