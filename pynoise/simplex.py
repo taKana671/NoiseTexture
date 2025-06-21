@@ -288,6 +288,8 @@ class SimplexNoise(Noise):
                 for x in range(width)]
         )
 
+       
+
         arr = arr.reshape(height, width)
         return arr
 

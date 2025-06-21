@@ -8,6 +8,9 @@ k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint32)
 u = np.array([1, 2, 3], dtype=np.uint32)
 UINT_MAX = np.iinfo(np.uint32).max
 
+k4 = np.array([1164413355, 1737075525, 2309703015, 2873452425], dtype=np.uint32)
+u4 = np.array([1, 2, 3, 4], dtype=np.uint32)
+
 
 def cache(max_length):
     def decoration(func):
@@ -55,6 +58,13 @@ class Noise:
         n ^= n[[1, 2, 0]] << u
         n *= k
 
+    def uhash44(self, n):
+        n ^= n[[1, 2, 3, 0]] << u4
+        n ^= n[[1, 2, 3, 0]] >> u4
+        n *= k4
+        n ^= n[[1, 2, 3, 0]] << u4
+        n *= k4
+
     @cache(128)
     def hash21(self, p):
         n = p.astype(np.uint32)
@@ -91,10 +101,6 @@ class Noise:
         return x + (y - x) * a
 
     def step(self, edge, x):
-        """Args:
-            edge (float): the location of the edge of the step function.
-            x (float): the value to be used to generate the step function.
-        """
         if x < edge:
             return 0
         return 1
@@ -138,3 +144,10 @@ class Noise:
             norm = 1
 
         return p / norm
+
+    def clamp_arr(self, x, min_val, max_val):
+        arr = np.zeros(len(x))
+
+        for i in range(len(arr)):
+            arr[i] = self.clamp(x[i], min_val, max_val)
+        return arr
