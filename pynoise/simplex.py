@@ -146,6 +146,112 @@ class SimplexNoise(Noise):
 
         return 42.0 * np.dot(mx, cp) * 0.5 + 0.5
 
+    def snoise4(self, x, y, z, w):
+        # c = [
+        #     0.138196601125011,  # (5 - sqrt(5))/20  G4
+        #     0.276393202250021,  # 2 * G4
+        #     0.414589803375032,  # 3 * G4
+        #     -0.447213595499958  # -1 + 4 * G4
+        # ]
+
+        c = [
+            g4 := (5 - np.sqrt(5)) / 20,  # (5 - sqrt(5))/20  G4
+            2 * g4,
+            3 * g4,        # 0.414589803375032,  # 3 * G4
+            -1 + 4 * g4,   #-0.447213595499958  # -1 + 4 * G4
+        ]
+
+        p = np.array([x, y, z, w])
+        f4 = (np.sqrt(5) - 1) / 4
+
+        # the first corner
+        d0 = np.floor(p + np.dot(p, np.full(4, f4)))
+        x0 = p - d0 + np.dot(d0, np.full(4, c[0]))
+
+        # other corners
+        i0 = np.zeros(4)
+        is_x = np.array([self.step(v, x0[0]) for v in x0[1:]])   #self.step(x0[1:], np.full(3, x0[0]))
+        is_yz = np.array([self.step(x0[i], x0[j]) for i, j in zip([2, 3, 3], [1, 1, 2])])
+
+        i0[0] = sum(is_x)
+        i0[1:] = 1.0 - is_x
+        i0[1] += sum(is_yz[:2])
+        i0[2:] += 1 - is_yz[:2]
+        i0[2] += is_yz[2]
+        i0[3] += 1 - is_yz[2]
+
+        i3 = np.array([self.clamp(v, 0.0, 1.0) for v in i0])
+        i2 = np.array([self.clamp(v, 0.0, 1.0) for v in i0 - 1.0])
+        i1 = np.array([self.clamp(v, 0.0, 1.0) for v in i0 - 2.0])
+
+        x1 = x0 - i1 + c[0]
+        x2 = x0 - i2 + c[1]
+        x3 = x0 - i3 + c[2]
+        x4 = x0 + c[3]
+
+        # permutations
+        d0 = self.mod289(d0)
+        j0 = 0
+
+        for i in range(3, -1, -1):
+            j0 = self.permute(d0[i] + j0)
+
+        j1 = np.zeros(4)
+        for i in range(3, -1, -1):
+            j1 = self.permute(d0[i] + np.array([i1[i], i2[i], i3[i], 1.0]) + j1)
+
+        ip = np.array([1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0, 0.0])
+        p0 = self.grad4(j0, ip)
+        p1 = self.grad4(j1[0], ip)
+        p2 = self.grad4(j1[1], ip)
+        p3 = self.grad4(j1[2], ip)
+        p4 = self.grad4(j1[3], ip)
+
+        # norm = self.inverssqrt(np.array([
+        #     np.dot(p0, p0), np.dot(p1, p1), np.dot(p2, p2), np.dot(p3, p3)
+        # ]))
+
+        # norm = self.inverssqrt(np.array([np.dot(pn, pn) for pn in [p0, p1, p2, p3]]))
+        norm = [self.inverssqrt(np.dot(pn, pn)) for pn in [p0, p1, p2, p3]]
+
+        p0 *= norm[0]
+        p1 *= norm[1]
+        p2 *= norm[2]
+        p3 *= norm[3]
+        p4 *= self.inverssqrt(np.dot(p4, p4))
+
+        # arr = 0.6 - np.array([np.dot(x0, x0), np.dot(x1, x1), np.dot(x2, x2)])
+        # m0 = np.array([max(v, 0.0) for v in arr])
+        # arr = 0.6 - np.array([np.dot(x0, x0), np.dot(x1, x1), np.dot(x2, x2)])
+        m0 = np.array([max(0.6 - np.dot(xn, xn), 0.0) for xn in [x0, x1, x2]])
+        m1 = np.array([max(0.6 - np.dot(xn, xn), 0.0) for xn in [x3, x4]])
+
+        # arr = 0.6 - np.array([np.dot(x3, x3), np.dot(x4, x4)])
+        # m1 = np.array([max(v, 0.0) for v in arr])
+
+        a0 = [np.dot(pn, xn) for pn, xn in zip([p0, p1, p2], [x0, x1, x2])]
+        a1 = [np.dot(pn, xn) for pn, xn in zip([p3, p4], [x3, x4])]
+        return 49.0 * (np.dot(m0 ** 4, a0) + np.dot(m1 ** 4, a1)) * 0.5 + 0.5
+
+        # return 49 * (np.dot(m0 ** 4, np.array([np.dot(p0, x0), np.dot(p1, x1), np.dot(p2, x2)])) + np.dot(m1 ** 4, np.array([np.dot(p3, x3), np.dot(p4, x4)])))
+
+    def grad4(self, j, ip):
+        """Args:
+            j (float)
+            ip (Numpy.ndarary): length is 4
+        """
+        ones = [1.0, 1.0, 1.0, -1.0]
+        p = np.zeros(4)
+
+        # f, _ = np.modf(np.full(3, j) * ip[:3])
+        f, _ = np.modf(j * ip[:3])
+        p[:3] = np.floor(f * 7.0) * ip[2] - 1.0
+        p[3] = 1.5 - np.dot(np.abs(p[:3]), ones[:3])
+        s = np.array([1 if v < 0 else 0 for v in p])
+        p[:3] = p[:3] + (s[:3] * 2.0 - 1.0) * s[3]
+
+        return p
+
     def noise2(self, width=256, height=256, scale=20, t=None):
         t = self.mock_time() if t is None else t
         m = min(width, height)
@@ -165,6 +271,19 @@ class SimplexNoise(Noise):
 
         arr = np.array(
             [self.snoise3((x / m + t) * scale, (y / m + t) * scale, t * scale)
+                for y in range(height)
+                for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
+    def noise4(self, width=256, height=256, scale=20, t=None):
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+
+        arr = np.array(
+            [self.snoise4((x / m + t) * scale, (y / m + t) * scale, 0, t * scale)
                 for y in range(height)
                 for x in range(width)]
         )
