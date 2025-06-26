@@ -12,8 +12,8 @@ except ImportError:
     from .pynoise.cellular import CellularNoise
     from .pynoise.fBm import Fractal2D, Fractal3D
     from .pynoise.periodic import PeriodicNoise
-    from .pynoise.perlin import PerlinNoise
-    from .pynoise.simplex import SimplexNoise
+    from .pynoise.perlin import PerlinNoise, TileablePerlinNoise
+    from .pynoise.simplex import SimplexNoise, TileableSimplexNoise
     from .pynoise.value import ValueNoise
     from .pynoise.voronoi import VoronoiNoise
     from .pynoise.warping import DomainWarping2D, DomainWarping3D

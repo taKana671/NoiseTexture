@@ -4,12 +4,9 @@ from functools import wraps
 import numpy as np
 
 
-k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint32)
-u = np.array([1, 2, 3], dtype=np.uint32)
+k = np.array([1164413355, 1737075525, 2309703015, 2873452425], dtype=np.uint32)
+u = np.array([1, 2, 3, 4], dtype=np.uint32)
 UINT_MAX = np.iinfo(np.uint32).max
-
-k4 = np.array([1164413355, 1737075525, 2309703015, 2873452425], dtype=np.uint32)
-u4 = np.array([1, 2, 3, 4], dtype=np.uint32)
 
 
 def cache(max_length):
@@ -37,6 +34,20 @@ class Noise:
     def mock_time(self):
         return random.uniform(0, 1000)
 
+    def get_4_nums(self, is_rnd=True):
+        if is_rnd:
+            li = random.sample(list('123456789'), 4)
+            sub = li[:3]
+
+            aa = int(''.join(sub))
+            bb = int(''.join([sub[1], sub[2], sub[0]]))
+            cc = int(''.join(sub[::-1]))
+            dd = int(''.join([sub[1], li[3], sub[2]]))
+
+            return aa, bb, cc, dd
+
+        return 123, 231, 321, 273
+
     def uhash11(self, n):
         n ^= n << u[0]
         n ^= n >> u[0]
@@ -52,18 +63,18 @@ class Noise:
         n *= k[:2]
 
     def uhash33(self, n):
-        n ^= n[[1, 2, 0]] << u
-        n ^= n[[1, 2, 0]] >> u
-        n *= k
-        n ^= n[[1, 2, 0]] << u
-        n *= k
+        n ^= n[[1, 2, 0]] << u[:3]
+        n ^= n[[1, 2, 0]] >> u[:3]
+        n *= k[:3]
+        n ^= n[[1, 2, 0]] << u[:3]
+        n *= k[:3]
 
     def uhash44(self, n):
-        n ^= n[[1, 2, 3, 0]] << u4
-        n ^= n[[1, 2, 3, 0]] >> u4
-        n *= k4
-        n ^= n[[1, 2, 3, 0]] << u4
-        n *= k4
+        n ^= n[[1, 2, 3, 0]] << u
+        n ^= n[[1, 2, 3, 0]] >> u
+        n *= k
+        n ^= n[[1, 2, 3, 0]] << u
+        n *= k
 
     @cache(128)
     def hash21(self, p):
@@ -93,6 +104,14 @@ class Noise:
     def hash33(self, p):
         n = p.astype(np.uint32)
         self.uhash33(n)
+        h = n / UINT_MAX
+
+        return h
+
+    @cache(128)
+    def hash44(self, p):
+        n = p.astype(np.uint32)
+        self.uhash44(n)
         h = n / UINT_MAX
 
         return h
@@ -144,10 +163,3 @@ class Noise:
             norm = 1
 
         return p / norm
-
-    def clamp_arr(self, x, min_val, max_val):
-        arr = np.zeros(len(x))
-
-        for i in range(len(arr)):
-            arr[i] = self.clamp(x[i], min_val, max_val)
-        return arr

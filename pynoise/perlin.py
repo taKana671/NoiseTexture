@@ -158,7 +158,7 @@ class PerlinNoise(Noise):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
-            [self.pnoise4(x + t, y + t, t, 0)
+            [self.pnoise4(x + t, y + t, 0, t)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
@@ -196,12 +196,39 @@ class PerlinNoise(Noise):
         t = self.mock_time() if t is None else t
         weight = abs(t % 10 - 5.0)
         noise = Fractal2D(self.pnoise2)
-        warp = DomainWarping2D(noise.fractal, weight=weight)
+        warp = DomainWarping2D(noise.fractal, weight, octaves)
 
         arr = np.array(
             [warp.warp(x, y)
                 for y in np.linspace(0, grid, size)
                 for x in np.linspace(0, grid, size)]
         )
+        arr = arr.reshape(size, size)
+        return arr
+
+
+class TileablePerlinNoise(PerlinNoise):
+
+    def tile(self, x, y, scale=1, aa=123, bb=231, cc=321, dd=273):
+        a = np.sin(x * 2 * np.pi) * scale + aa
+        b = np.cos(x * 2 * np.pi) * scale + bb
+        c = np.sin(y * 2 * np.pi) * scale + cc
+        d = np.cos(y * 2 * np.pi) * scale + dd
+
+        return self.pnoise4(a, b, c, d)
+
+    def tileable_noise(self, size=256, scale=0.8, t=None, is_rnd=True):
+        """Args:
+            scale (float): The smaller scale is, the larger the noise spacing becomes,
+                       and the larger it is, the smaller the noise spacing becomes.
+        """
+        t = self.mock_time() if t is None else t
+        aa, bb, cc, dd = self.get_4_nums(is_rnd)
+
+        arr = np.array(
+            [self.tile((x + t) / size, (y + t) / size, scale, aa, bb, cc, dd)
+                for y in range(size) for x in range(size)]
+        )
+
         arr = arr.reshape(size, size)
         return arr

@@ -8,7 +8,7 @@ class VoronoiNoise(Noise):
 
     def vnoise2(self, p):
         """Args:
-            p (numpy.ndarray) 2_dimensional
+            p (numpy.ndarray) 2-element array
         """
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
@@ -33,7 +33,7 @@ class VoronoiNoise(Noise):
 
     def vnoise3(self, p):
         """Args:
-            p (numpy.ndarray) 3_dimensional
+            p (numpy.ndarray) 3-element array
         """
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
