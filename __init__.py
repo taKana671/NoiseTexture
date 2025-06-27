@@ -2,7 +2,7 @@ try:
     from .cynoise.cellular import CellularNoise
     from .cynoise.fBm import Fractal2D, Fractal3D
     from .cynoise.periodic import PeriodicNoise
-    from .cynoise.perlin import PerlinNoise
+    from .cynoise.perlin import PerlinNoise, TileablePerlinNoise
     from .cynoise.simplex import SimplexNoise
     from .cynoise.value import ValueNoise
     from .cynoise.voronoi import VoronoiNoise

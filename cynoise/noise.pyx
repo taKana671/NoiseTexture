@@ -11,13 +11,27 @@ from libc.math cimport atan2, cos, sin, pi, floor, fmax, fmin
 cdef class Noise:
 
     def __init__(self):
-        # self.k = [1164413355, 1737075525, 2309703015]
-        self.k = [0x456789abu, 0x6789ab45u, 0x89ab4567u]
-        self.u = [1, 2, 3]
+        # self.k = [1164413355, 1737075525, 2309703015, 2873452425]
+        self.k = [0x456789abu, 0x6789ab45u, 0x89ab4567u, 0xab456789u]
+        self.u = [1, 2, 3, 4]
         self.uint_max = 4294967295
 
     def mock_time(self):
         return random.uniform(0, 1000)
+
+    def get_4_nums(self, is_rnd=True):
+        if is_rnd:
+            li = random.sample(list('123456789'), 4)
+            sub = li[:3]
+
+            aa = int(''.join(sub))
+            bb = int(''.join([sub[1], sub[2], sub[0]]))
+            cc = int(''.join(sub[::-1]))
+            dd = int(''.join([sub[1], li[3], sub[2]]))
+
+            return aa, bb, cc, dd
+
+        return 123, 231, 321, 273
 
     cdef unsigned int uhash11(self, unsigned int n):
         # I did not know why, using array pointers made all return values 0.
@@ -77,6 +91,38 @@ cdef class Noise:
         n[0][1] *= self.k[1]
         n[0][2] *= self.k[2]
 
+    cdef void uhash44(self, unsigned int[4] *n):
+        cdef:
+            unsigned int[4] tmp
+
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[2] << self.u[1]
+        n[0][2] ^= tmp[3] << self.u[2]
+        n[0][3] ^= tmp[0] << self.u[3]
+
+        tmp = n[0]
+        n[0][0] ^= tmp[1] >> self.u[0]
+        n[0][1] ^= tmp[2] >> self.u[1]
+        n[0][2] ^= tmp[3] >> self.u[2]
+        n[0][3] ^= tmp[0] >> self.u[3]
+
+        n[0][0] *= self.k[0]
+        n[0][1] *= self.k[1]
+        n[0][2] *= self.k[2]
+        n[0][3] *= self.k[3]
+
+        tmp = n[0]
+        n[0][0] ^= tmp[1] << self.u[0]
+        n[0][1] ^= tmp[2] << self.u[1]
+        n[0][2] ^= tmp[3] << self.u[2] 
+        n[0][3] ^= tmp[0] << self.u[3]
+
+        n[0][0] *= self.k[0]
+        n[0][1] *= self.k[1]
+        n[0][2] *= self.k[2]
+        n[0][3] *= self.k[3]
+
     @cython.cdivision(True)
     cdef double hash21(self, double[2] *p):
         cdef:
@@ -131,6 +177,20 @@ cdef class Noise:
         self.uhash33(&n)
 
         for i in range(3):
+            h[0][i] = <double>n[i] / self.uint_max
+
+    @cython.cdivision(True)
+    cdef void hash44(self, double[4] *p, double[4] *h):
+        cdef:
+            unsigned int i
+            unsigned int[4] n
+
+        for i in range(4):
+            n[i] = <unsigned int>p[0][i]
+
+        self.uhash44(&n)
+
+        for i in range(4):
             h[0][i] = <double>n[i] / self.uint_max
 
     cdef double hermite_interpolation(self, double x):
