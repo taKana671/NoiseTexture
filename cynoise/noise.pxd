@@ -50,9 +50,11 @@ cdef class Noise:
 
     cdef double inner_product44(self, double[4] *arr1, double[4] *arr2)
 
+    cdef double inner_product21(self, double[2] *arr, double *v)
+
     cdef double inner_product31(self, double[3] *arr, double *v)
 
-    cdef double inner_product21(self, double[2] *arr, double *v)
+    cdef double inner_product41(self, double[4] *arr, double *v)
 
     cdef double clamp(self, double x, double a, double b)
 

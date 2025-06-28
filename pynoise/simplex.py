@@ -148,7 +148,7 @@ class SimplexNoise(Noise):
     def snoise4(self, x, y, z, w):
         """based on https://github.com/hughsk/glsl-noise/blob/master/simplex/4d.glsl
         """
-        c = [
+        grid = [
             g4 := (5 - np.sqrt(5)) / 20,
             2 * g4,
             3 * g4,
@@ -160,7 +160,7 @@ class SimplexNoise(Noise):
 
         # the first corner
         d0 = np.floor(p + np.dot(p, np.full(4, f4)))
-        x0 = p - d0 + np.dot(d0, np.full(4, c[0]))
+        x0 = p - d0 + np.dot(d0, np.full(4, grid[0]))
 
         # other corners
         i0 = np.zeros(4)
@@ -170,46 +170,41 @@ class SimplexNoise(Noise):
         i0[0] = sum(is_x)
         i0[1:] = 1.0 - is_x
         i0[1] += sum(is_yz[:2])
-        i0[2:] += 1 - is_yz[:2]
+        i0[2:] += 1.0 - is_yz[:2]
         i0[2] += is_yz[2]
-        i0[3] += 1 - is_yz[2]
+        i0[3] += 1.0 - is_yz[2]
 
         i3 = np.array([self.clamp(v, 0.0, 1.0) for v in i0])
         i2 = np.array([self.clamp(v, 0.0, 1.0) for v in i0 - 1.0])
         i1 = np.array([self.clamp(v, 0.0, 1.0) for v in i0 - 2.0])
 
-        x1 = x0 - i1 + c[0]
-        x2 = x0 - i2 + c[1]
-        x3 = x0 - i3 + c[2]
-        x4 = x0 + c[3]
+        x1 = x0 - i1 + grid[0]
+        x2 = x0 - i2 + grid[1]
+        x3 = x0 - i3 + grid[2]
+        x4 = x0 + grid[3]
 
         # permutations
-        d0 = self.mod289(d0)
         j0 = 0
-
-        for i in range(3, -1, -1):
-            j0 = self.permute(d0[i] + j0)
-
         j1 = np.zeros(4)
-        for i in range(3, -1, -1):
-            j1 = self.permute(d0[i] + np.array([i1[i], i2[i], i3[i], 1.0]) + j1)
 
-        ip = np.array([1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0, 0.0])
+        for i in range(3, -1, -1):
+            m = self.mod289(d0[i])
+            j0 = self.permute(m + j0)
+            j1 = self.permute(m + np.array([i1[i], i2[i], i3[i], 1.0]) + j1)
+
+        ip = np.array([1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0])
         p0 = self.grad4(j0, ip)
         p1 = self.grad4(j1[0], ip)
         p2 = self.grad4(j1[1], ip)
         p3 = self.grad4(j1[2], ip)
         p4 = self.grad4(j1[3], ip)
 
-        for pn in [p0, p1, p2, p3]:
+        for pn in [p0, p1, p2, p3, p4]:
             norm = self.inverssqrt(np.dot(pn, pn))
             pn *= norm
 
-        p4 *= self.inverssqrt(np.dot(p4, p4))
-
         m0 = np.array([max(0.6 - np.dot(xn, xn), 0.0) for xn in [x0, x1, x2]])
         m1 = np.array([max(0.6 - np.dot(xn, xn), 0.0) for xn in [x3, x4]])
-
         a0 = [np.dot(pn, xn) for pn, xn in zip([p0, p1, p2], [x0, x1, x2])]
         a1 = [np.dot(pn, xn) for pn, xn in zip([p3, p4], [x3, x4])]
 
@@ -221,9 +216,10 @@ class SimplexNoise(Noise):
             ip (Numpy.ndarary): length is 4
         """
         p = np.zeros(4)
-        f, _ = np.modf(j * ip[:3])
+        f, _ = np.modf(j * ip)
         p[:3] = np.floor(f * 7.0) * ip[2] - 1.0
-        p[3] = 1.5 - np.dot(np.abs(p[:3]), [1.0, 1.0, 1.0])
+        p[3] = 1.5 - sum(np.abs(p[:3]))
+
         s = np.array([1 if v < 0 else 0 for v in p])
         p[:3] = p[:3] + (s[:3] * 2.0 - 1.0) * s[3]
 
