@@ -134,6 +134,15 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
+      <td>PerlinNoise.noise4</td>
+      <td>4.339920</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.048453</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
       <td>PerlinNoise.fractal2</td>
       <td>5.185004</td>
       <td>1</td>
@@ -363,6 +372,24 @@ print(result.best, result.loops, result.repeat)
       <td>1</td>
       <td>7</td>
       <td>0.142454</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+    <td>TileablePerlinNoise.tileable_noise</td>
+      <td>4.531276</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.061470</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+    <td>TileableSimplexNoise.tileable_noise</td>
+      <td>8.264322</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.052569</td>
       <td>10</td>
       <td>7</td>
     </tr>
