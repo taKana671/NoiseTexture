@@ -64,9 +64,6 @@ For more details of methods and parameters, please see source codes.
 
 ![Image](https://github.com/user-attachments/assets/7a6ba469-236a-4e83-b5ac-e5d8f1d4d7f9)
 
-#### Tileable Perlin Noise
-![Image](https://github.com/user-attachments/assets/a7ba1d1c-20e8-4f09-b94c-4dfff83452f7)
-
 ***
 #### Cellular Noise
 ![Image](https://github.com/user-attachments/assets/3739693c-c730-49b5-9514-f73b035a2c80)
@@ -76,20 +73,21 @@ For more details of methods and parameters, please see source codes.
 ![Image](https://github.com/user-attachments/assets/6b621b18-cd04-4501-b2a6-536a86bc22be)
 
 ***
+#### Voronoi Noise
+![Image](https://github.com/user-attachments/assets/734c4001-343c-428d-bf91-da0b87f4de9c)
+![Image](https://github.com/user-attachments/assets/e42f3977-594c-49be-9daa-07ada321cac1)
+
+***
 #### Simplex Noise
 ![Image](https://github.com/user-attachments/assets/321264ed-4ed8-41bd-a074-43ba89df1bb0)
-
-#### Tileable Simplex Noise
-![Image](https://github.com/user-attachments/assets/4b193195-92a5-4455-aeb8-ef6d79d1f8e8)
 
 ***
 #### Value Noise
 ![Image](https://github.com/user-attachments/assets/5ace87b4-f5e2-4e68-9983-6869f1e34374)
 
 ***
-#### Voronoi Noise
-![Image](https://github.com/user-attachments/assets/734c4001-343c-428d-bf91-da0b87f4de9c)
-![Image](https://github.com/user-attachments/assets/e42f3977-594c-49be-9daa-07ada321cac1)
+#### Tileable
+![Image](https://github.com/user-attachments/assets/ce5abe2d-c37c-4013-81f6-afdadac39b5b)
 
 
 # Speed ​​comparison
