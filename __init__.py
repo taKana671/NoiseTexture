@@ -3,7 +3,7 @@ try:
     from .cynoise.fBm import Fractal2D, Fractal3D
     from .cynoise.periodic import PeriodicNoise
     from .cynoise.perlin import PerlinNoise, TileablePerlinNoise
-    from .cynoise.simplex import SimplexNoise
+    from .cynoise.simplex import SimplexNoise, TileableSimplexNoise
     from .cynoise.value import ValueNoise
     from .cynoise.voronoi import VoronoiNoise
     from .cynoise.warping import DomainWarping2D, DomainWarping3D

@@ -30,6 +30,7 @@ cdef class PerlinNoise(Noise):
 
         return _u + _v
 
+
     cdef double _gtable3(self, double[3] *lattice, double[3] *p):
         cdef:
             unsigned int idx, i

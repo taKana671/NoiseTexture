@@ -220,7 +220,8 @@ class SimplexNoise(Noise):
         p[:3] = np.floor(f * 7.0) * ip[2] - 1.0
         p[3] = 1.5 - sum(np.abs(p[:3]))
 
-        s = np.array([1 if v < 0 else 0 for v in p])
+        # s = np.array([1 if v < 0 else 0 for v in p])
+        s = np.where(p < 0, 1, 0)
         p[:3] = p[:3] + (s[:3] * 2.0 - 1.0) * s[3]
 
         return p

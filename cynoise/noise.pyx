@@ -18,6 +18,20 @@ cdef class Noise:
 
     def mock_time(self):
         return random.uniform(0, 1000)
+    
+    def get_4_nums(self, is_rnd=True):
+        if is_rnd:
+            li = random.sample(list('123456789'), 4)
+            sub = li[:3]
+
+            aa = int(''.join(sub))
+            bb = int(''.join([sub[1], sub[2], sub[0]]))
+            cc = int(''.join(sub[::-1]))
+            dd = int(''.join([sub[1], li[3], sub[2]]))
+
+            return aa, bb, cc, dd
+
+        return 123, 231, 321, 273
 
     def get_4_nums(self, is_rnd=True):
         if is_rnd:

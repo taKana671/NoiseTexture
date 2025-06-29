@@ -2,7 +2,7 @@
 
 import cython
 import numpy as np
-from libc.math cimport floor, fmax, fmin, modf, fabs
+from libc.math cimport floor, fmax, fmin, modf, fabs, cos, sin, pi
 
 from .fBm cimport Fractal2D, Fractal3D
 from .noise cimport Noise
@@ -306,6 +306,9 @@ cdef class SimplexNoise(Noise):
     
     cpdef double snoise3(self, double x, double y, double z):
         return self._snoise3(x, y, z)
+
+    cpdef double snoise4(self, double x, double y, double z, double w):
+        return self._snoise4(x, y, z, w)
      
     cpdef noise2(self, width=256, height=256, scale=20.0, t=None):
         t = self.mock_time() if t is None else t
@@ -377,6 +380,35 @@ cdef class SimplexNoise(Noise):
 
         arr = arr.reshape(height, width)
         return arr
+
+
+cdef class TileableSimplexNoise(SimplexNoise):
+
+    cpdef tile(self, x, y, scale=3, aa=123, bb=231, cc=321, dd=273):
+        a = sin(x * 2 * pi) * scale + aa
+        b = cos(x * 2 * pi) * scale + bb
+        c = sin(y * 2 * pi) * scale + cc
+        d = cos(y * 2 * pi) * scale + dd
+
+        return self.snoise4(a, b, c, d)
+
+    cpdef tileable_noise(self, width=256, height=256, scale=3, t=None, is_rnd=True):
+        """Args:
+            scale (float): The smaller scale is, the larger the noise spacing becomes,
+                       and the larger it is, the smaller the noise spacing becomes.
+        """
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+        aa, bb, cc, dd = self.get_4_nums(is_rnd)
+
+        arr = np.array(
+            [self.tile(x / m + t, y / m + t, scale, aa, bb, cc, dd)
+                for y in range(height) for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
 
 
 
