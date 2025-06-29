@@ -1,4 +1,3 @@
-# import cv2
 import numpy as np
 from functools import reduce
 
@@ -146,6 +145,87 @@ class SimplexNoise(Noise):
 
         return 42.0 * np.dot(mx, cp) * 0.5 + 0.5
 
+    def snoise4(self, x, y, z, w):
+        """based on https://github.com/hughsk/glsl-noise/blob/master/simplex/4d.glsl
+        """
+        grid = [
+            g4 := (5 - np.sqrt(5)) / 20,
+            2 * g4,
+            3 * g4,
+            -1 + 4 * g4,
+        ]
+
+        p = np.array([x, y, z, w])
+        f4 = (np.sqrt(5) - 1) / 4
+
+        # the first corner
+        d0 = np.floor(p + np.dot(p, np.full(4, f4)))
+        x0 = p - d0 + np.dot(d0, np.full(4, grid[0]))
+
+        # other corners
+        i0 = np.zeros(4)
+        is_x = np.array([self.step(v, x0[0]) for v in x0[1:]])
+        is_yz = np.array([self.step(x0[i], x0[j]) for i, j in zip([2, 3, 3], [1, 1, 2])])
+
+        i0[0] = sum(is_x)
+        i0[1:] = 1.0 - is_x
+        i0[1] += sum(is_yz[:2])
+        i0[2:] += 1.0 - is_yz[:2]
+        i0[2] += is_yz[2]
+        i0[3] += 1.0 - is_yz[2]
+
+        i3 = np.array([self.clamp(v, 0.0, 1.0) for v in i0])
+        i2 = np.array([self.clamp(v, 0.0, 1.0) for v in i0 - 1.0])
+        i1 = np.array([self.clamp(v, 0.0, 1.0) for v in i0 - 2.0])
+
+        x1 = x0 - i1 + grid[0]
+        x2 = x0 - i2 + grid[1]
+        x3 = x0 - i3 + grid[2]
+        x4 = x0 + grid[3]
+
+        # permutations
+        j0 = 0
+        j1 = np.zeros(4)
+
+        for i in range(3, -1, -1):
+            m = self.mod289(d0[i])
+            j0 = self.permute(m + j0)
+            j1 = self.permute(m + np.array([i1[i], i2[i], i3[i], 1.0]) + j1)
+
+        ip = np.array([1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0])
+        p0 = self.grad4(j0, ip)
+        p1 = self.grad4(j1[0], ip)
+        p2 = self.grad4(j1[1], ip)
+        p3 = self.grad4(j1[2], ip)
+        p4 = self.grad4(j1[3], ip)
+
+        for pn in [p0, p1, p2, p3, p4]:
+            norm = self.inverssqrt(np.dot(pn, pn))
+            pn *= norm
+
+        m0 = np.array([max(0.6 - np.dot(xn, xn), 0.0) for xn in [x0, x1, x2]])
+        m1 = np.array([max(0.6 - np.dot(xn, xn), 0.0) for xn in [x3, x4]])
+        a0 = [np.dot(pn, xn) for pn, xn in zip([p0, p1, p2], [x0, x1, x2])]
+        a1 = [np.dot(pn, xn) for pn, xn in zip([p3, p4], [x3, x4])]
+
+        return 49.0 * (np.dot(m0 ** 4, a0) + np.dot(m1 ** 4, a1)) * 0.5 + 0.5
+
+    def grad4(self, j, ip):
+        """Args:
+            j (float)
+            ip (Numpy.ndarary): length is 4
+        """
+        p = np.zeros(4)
+        f, _ = np.modf(j * ip)
+        p[:3] = np.floor(f * 7.0) * ip[2] - 1.0
+        p[3] = 1.5 - sum(np.abs(p[:3]))
+
+        # s = np.array([1 if v < 0 else 0 for v in p])
+        s = np.where(p < 0, 1, 0)
+        p[:3] = p[:3] + (s[:3] * 2.0 - 1.0) * s[3]
+
+        return p
+
     def noise2(self, width=256, height=256, scale=20, t=None):
         t = self.mock_time() if t is None else t
         m = min(width, height)
@@ -172,12 +252,25 @@ class SimplexNoise(Noise):
         arr = arr.reshape(height, width)
         return arr
 
+    def noise4(self, width=256, height=256, scale=20, t=None):
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+
+        arr = np.array(
+            [self.snoise4((x / m + t) * scale, (y / m + t) * scale, 0, t * scale)
+                for y in range(height)
+                for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
     def fractal2(self, width=256, height=256, t=None,
                  gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
         m = min(width, height)
 
-        noise = Fractal2D(self.snoise2)
+        noise = Fractal2D(self.snoise2, gain, lacunarity, octaves)
 
         arr = np.array(
             [noise.fractal(x / m + t, y / m + t)
@@ -191,11 +284,39 @@ class SimplexNoise(Noise):
                  gain=0.5, lacunarity=2.01, octaves=4):
         t = self.mock_time() if t is None else t
         m = min(width, height)
-        noise = Fractal3D(self.snoise3)
+        noise = Fractal3D(self.snoise3, gain, lacunarity, octaves)
 
         arr = np.array(
             [noise.fractal(x / m + t, y / m + t, t)
              for y in range(height) for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
+
+class TileableSimplexNoise(SimplexNoise):
+
+    def tile(self, x, y, scale=3, aa=123, bb=231, cc=321, dd=273):
+        a = np.sin(x * 2 * np.pi) * scale + aa
+        b = np.cos(x * 2 * np.pi) * scale + bb
+        c = np.sin(y * 2 * np.pi) * scale + cc
+        d = np.cos(y * 2 * np.pi) * scale + dd
+
+        return self.snoise4(a, b, c, d)
+
+    def tileable_noise(self, width=256, height=256, scale=3, t=None, is_rnd=True):
+        """Args:
+            scale (float): The smaller scale is, the larger the noise spacing becomes,
+                       and the larger it is, the smaller the noise spacing becomes.
+        """
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+        aa, bb, cc, dd = self.get_4_nums(is_rnd)
+
+        arr = np.array(
+            [self.tile(x / m + t, y / m + t, scale, aa, bb, cc, dd)
+                for y in range(height) for x in range(width)]
         )
 
         arr = arr.reshape(height, width)

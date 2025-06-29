@@ -2,7 +2,7 @@
 
 import cython
 import numpy as np
-from libc.math cimport floor, fmax, fmin, modf, fabs
+from libc.math cimport floor, fmax, fmin, modf, fabs, cos, sin, pi
 
 from .fBm cimport Fractal2D, Fractal3D
 from .noise cimport Noise
@@ -195,11 +195,120 @@ cdef class SimplexNoise(Noise):
 
         return 42.0 * self.inner_product44(&mx, &cp) * 0.5 + 0.5
 
+    @cython.cdivision(True)
+    cdef double _snoise4(self, double x, double y, double z, double w):
+        cdef:
+            double[4] grid
+            double[4] p = [x, y, z, w]
+            double f4 = (5.0 ** 0.5 - 1.0) / 4.0
+            double j0 = 0.0
+            double[4] j1 = [0.0, 0.0, 0.0, 0.0]
+
+            double inner, v, norm
+            double[2] m1, a1
+            double[3] ip, m0, a0
+            double[4] d0
+            double[5][4] xn, pn
+            double[4][4] ni
+            unsigned int i, j
+
+        grid[0] = (5.0 - 5.0 ** 0.5) / 20.0
+        grid[1] = 2.0 * grid[0]
+        grid[2] = 3.0 * grid[0]
+        grid[3] = -1.0 + 4.0 * grid[0]
+
+        inner = self.inner_product41(&p, &f4)
+        for i in range(4):
+            d0[i] = floor(p[i] + inner)
+        
+        inner = self.inner_product41(&d0, &grid[0])
+        for i in range(4):
+            xn[0][i] = p[i] - d0[i] + inner
+
+        ni[0][0] = 0.0
+        for i in range(3):
+            v = self.step(xn[0][i + 1], xn[0][0])
+            ni[0][0] += v
+            ni[0][i + 1] = 1.0 - v
+        
+        for i in range(2):
+            v = self.step(xn[0][i + 2], xn[0][1])
+            ni[0][1] += v
+            ni[0][i + 2] += 1.0 - v
+
+        v = self.step(xn[0][3], xn[0][2])
+        ni[0][2] += v
+        ni[0][3] += 1 - v
+
+        for i in range(4):
+            ni[3][i] = self.clamp(ni[0][i], 0.0, 1.0)
+            ni[2][i] = self.clamp(ni[0][i] - 1.0, 0.0, 1.0)
+            ni[1][i] = self.clamp(ni[0][i] - 2.0, 0.0, 1.0)
+        
+            xn[1][i] = xn[0][i] - ni[1][i] + grid[0]
+            xn[2][i] = xn[0][i] - ni[2][i] + grid[1]
+            xn[3][i] = xn[0][i] - ni[3][i] + grid[2]
+            xn[4][i] = xn[0][i] + grid[3]
+        
+        for i in range(3, -1, -1):
+            m = self.mod289(d0[i])
+            j0 = self.permute(m + j0)
+            j1[0] = self.permute(m + ni[1][i] + j1[0])
+            j1[1] = self.permute(m + ni[2][i] + j1[1])
+            j1[2] = self.permute(m + ni[3][i] + j1[2])
+            j1[3] = self.permute(m + 1.0 + j1[3])
+
+        ip = [1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0]
+
+        for i in range(5):
+            v = j0 if i == 0 else j1[i - 1]
+            self.grad4(&v, &ip, &pn[i])
+
+            inner = self.inner_product44(&pn[i], &pn[i])
+            norm = self.inverssqrt(inner)
+
+            for j in range(4):
+                pn[i][j] *= norm
+  
+        for i in range(5):
+            v = fmax(0.6 - self.inner_product44(&xn[i], &xn[i]), 0.0)
+            inner = self.inner_product44(&pn[i], &xn[i])
+
+            if i < 3:
+                m0[i] = v ** 4
+                a0[i] = inner
+            else:
+                m1[i-3] = v ** 4
+                a1[i-3] = inner
+
+        return 49.0 * (self.inner_product33(&m0, &a0) + self.inner_product22(&m1, &a1)) * 0.5 + 0.5
+
+    cdef void grad4(self, double *j, double[3] *ip, double[4] *p):
+        cdef:
+            double iptr, f, v, s
+            unsigned int i
+
+        v = 0.0
+        for i in range(3):
+            f = modf(j[0] * ip[0][i], &iptr)
+            p[0][i] = floor(f * 7.0) * ip[0][2] - 1.0
+            v += fabs(p[0][i])
+
+        p[0][3] = 1.5 - v
+
+        s = 1 if p[0][3] < 0 else 0
+        for i in range(3):
+            v = 1 if p[0][i] < 0 else 0
+            p[0][i] += (v * 2.0 - 1.0) * s
+
     cpdef double snoise2(self, double x, double y):
         return self._snoise2(x, y)
     
     cpdef double snoise3(self, double x, double y, double z):
         return self._snoise3(x, y, z)
+
+    cpdef double snoise4(self, double x, double y, double z, double w):
+        return self._snoise4(x, y, z, w)
      
     cpdef noise2(self, width=256, height=256, scale=20.0, t=None):
         t = self.mock_time() if t is None else t
@@ -220,6 +329,19 @@ cdef class SimplexNoise(Noise):
 
         arr = np.array(
             [self._snoise3((x / m + t) * scale, (y / m + t) * scale, t * scale)
+                for y in range(height)
+                for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
+    cpdef noise4(self, width=256, height=256, scale=20, t=None):
+        t = self.mock_time() if t is None else float(t)
+        m = min(width, height)
+
+        arr = np.array(
+            [self._snoise4((x / m + t) * scale, (y / m + t) * scale, 0, t * scale)
                 for y in range(height)
                 for x in range(width)]
         )
@@ -258,6 +380,35 @@ cdef class SimplexNoise(Noise):
 
         arr = arr.reshape(height, width)
         return arr
+
+
+cdef class TileableSimplexNoise(SimplexNoise):
+
+    cpdef tile(self, x, y, scale=3, aa=123, bb=231, cc=321, dd=273):
+        a = sin(x * 2 * pi) * scale + aa
+        b = cos(x * 2 * pi) * scale + bb
+        c = sin(y * 2 * pi) * scale + cc
+        d = cos(y * 2 * pi) * scale + dd
+
+        return self.snoise4(a, b, c, d)
+
+    cpdef tileable_noise(self, width=256, height=256, scale=3, t=None, is_rnd=True):
+        """Args:
+            scale (float): The smaller scale is, the larger the noise spacing becomes,
+                       and the larger it is, the smaller the noise spacing becomes.
+        """
+        t = self.mock_time() if t is None else t
+        m = min(width, height)
+        aa, bb, cc, dd = self.get_4_nums(is_rnd)
+
+        arr = np.array(
+            [self.tile(x / m + t, y / m + t, scale, aa, bb, cc, dd)
+                for y in range(height) for x in range(width)]
+        )
+
+        arr = arr.reshape(height, width)
+        return arr
+
 
 
 

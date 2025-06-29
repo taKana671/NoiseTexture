@@ -4,8 +4,8 @@ from functools import wraps
 import numpy as np
 
 
-k = np.array([1164413355, 1737075525, 2309703015], dtype=np.uint32)
-u = np.array([1, 2, 3], dtype=np.uint32)
+k = np.array([1164413355, 1737075525, 2309703015, 2873452425], dtype=np.uint32)
+u = np.array([1, 2, 3, 4], dtype=np.uint32)
 UINT_MAX = np.iinfo(np.uint32).max
 
 
@@ -34,6 +34,20 @@ class Noise:
     def mock_time(self):
         return random.uniform(0, 1000)
 
+    def get_4_nums(self, is_rnd=True):
+        if is_rnd:
+            li = random.sample(list('123456789'), 4)
+            sub = li[:3]
+
+            aa = int(''.join(sub))
+            bb = int(''.join([sub[1], sub[2], sub[0]]))
+            cc = int(''.join(sub[::-1]))
+            dd = int(''.join([sub[1], li[3], sub[2]]))
+
+            return aa, bb, cc, dd
+
+        return 123, 231, 321, 273
+
     def uhash11(self, n):
         n ^= n << u[0]
         n ^= n >> u[0]
@@ -49,10 +63,17 @@ class Noise:
         n *= k[:2]
 
     def uhash33(self, n):
-        n ^= n[[1, 2, 0]] << u
-        n ^= n[[1, 2, 0]] >> u
+        n ^= n[[1, 2, 0]] << u[:3]
+        n ^= n[[1, 2, 0]] >> u[:3]
+        n *= k[:3]
+        n ^= n[[1, 2, 0]] << u[:3]
+        n *= k[:3]
+
+    def uhash44(self, n):
+        n ^= n[[1, 2, 3, 0]] << u
+        n ^= n[[1, 2, 3, 0]] >> u
         n *= k
-        n ^= n[[1, 2, 0]] << u
+        n ^= n[[1, 2, 3, 0]] << u
         n *= k
 
     @cache(128)
@@ -87,14 +108,18 @@ class Noise:
 
         return h
 
+    @cache(128)
+    def hash44(self, p):
+        n = p.astype(np.uint32)
+        self.uhash44(n)
+        h = n / UINT_MAX
+
+        return h
+
     def mix(self, x, y, a):
         return x + (y - x) * a
 
     def step(self, edge, x):
-        """Args:
-            edge (float): the location of the edge of the step function.
-            x (float): the value to be used to generate the step function.
-        """
         if x < edge:
             return 0
         return 1
