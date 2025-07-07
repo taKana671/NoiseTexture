@@ -4,6 +4,13 @@ from ..noise import Noise
 
 
 class VoronoiNoise(Noise):
+    """A class to generate voronoi noise.
+        Args:
+            grid (int): the number of vertical and horizontal grids.
+    """
+
+    def __init__(self, grid=4):
+        self.n_grid = grid
 
     def vnoise2(self, p):
         """Args:
@@ -77,51 +84,51 @@ class VoronoiNoise(Noise):
         lattice_pt = self.vnoise3(p)
         return self.hash33(lattice_pt)
 
-    def noise3(self, size=256, grid=4, t=None):
+    def noise3(self, size=256, t=None):
         t = self.mock_time() if t is None else t
         vec = np.array([0.3, 0.6, 0.2])
 
         arr = np.array(
             [np.dot(self.voronoi3(x + t, y + t, t), vec)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size)
         return arr
 
-    def noise3_color(self, size=256, grid=4, t=None):
+    def noise3_color(self, size=256, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.voronoi3(x + t, y + t, t)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size, 3)
         return arr
 
-    def noise2(self, size=256, grid=4, t=None):
+    def noise2(self, size=256, t=None):
         t = self.mock_time() if t is None else t
         vec = np.array([0.3, 0.6])
 
         arr = np.array(
             [np.dot(self.voronoi2(x + t, y + t), vec)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size)
         return arr
 
-    def noise2_color(self, size=256, grid=4, cell=1.0, t=None):
+    def noise2_color(self, size=256, cell=1.0, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [[*self.voronoi2(x + t, y + t), cell]
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size, 3)
@@ -129,6 +136,10 @@ class VoronoiNoise(Noise):
 
 
 class TileableVoronoiNoise(VoronoiNoise):
+    """A class to generate tileable voronoi noise.
+        Args:
+            grid (int): the number of vertical and horizontal grids.
+    """
 
     def vnoise2(self, p):
         """Args:
@@ -144,10 +155,9 @@ class TileableVoronoiNoise(VoronoiNoise):
 
             for i in range(-1, 2):
                 grid[0] = i + n[0]
-                tiled_cell = self.modulo(grid, 4)
+                tiled_cell = self.modulo(grid, self.n_grid)
                 jitter = self.hash22(tiled_cell)
-                cell_pos = grid + jitter - 0.5
-                to_cell = cell_pos - p
+                to_cell = grid + jitter - 0.5 - p
 
                 if (length := self.get_norm(to_cell)) <= dist:
                     dist = length
@@ -172,16 +182,12 @@ class TileableVoronoiNoise(VoronoiNoise):
 
                 for i in range(-1, 2):
                     grid[0] = i + n[0]
-                    tiled_cell = self.modulo(grid, 4)
+                    tiled_cell = self.modulo(grid, self.n_grid)
                     jitter = self.hash33(tiled_cell)
-                    cell_pos = grid + jitter - 0.5
-                    to_cell = cell_pos - p
+                    to_cell = grid + jitter - 0.5 - p
 
                     if (length := self.get_norm(to_cell)) < dist:
                         dist = length
                         lattice_pt[:] = tiled_cell + jitter
 
         return lattice_pt
-    
-
-
