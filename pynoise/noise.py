@@ -93,6 +93,14 @@ class Noise:
         return h
 
     @cache(128)
+    def hash41(self, p):
+        n = p.astype(np.uint32)
+        self.uhash44(n)
+        h = n[0] / UINT_MAX
+
+        return h
+
+    @cache(128)
     def hash22(self, p):
         n = p.astype(np.uint32)
         self.uhash22(n)
@@ -163,3 +171,7 @@ class Noise:
             norm = 1
 
         return p / norm
+
+    def modulo(self, divident, divisor):
+        d = divident % divisor + divisor
+        return d % divisor

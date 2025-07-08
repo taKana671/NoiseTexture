@@ -1,6 +1,7 @@
 import numpy as np
 
-from .voronoi import VoronoiNoise, TileableVoronoiNoise
+from .voronoi import VoronoiNoise
+from .voronoi import TileableVoronoiNoise
 
 
 class VoronoiEdges(VoronoiNoise):
@@ -71,7 +72,7 @@ class VoronoiEdges(VoronoiNoise):
 
         return self.mix(edge, cell, a)
 
-    def edge2(self, size=256, cell=0.0, edge=1.0, t=None):
+    def noise2(self, size=256, cell=0.0, edge=1.0, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -83,7 +84,7 @@ class VoronoiEdges(VoronoiNoise):
         arr = arr.reshape(size, size)
         return arr
 
-    def edge2_color(self, size=256, cell=1.0, edge=1.0, t=None):
+    def noise2_color(self, size=256, cell=1.0, edge=1.0, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -95,7 +96,7 @@ class VoronoiEdges(VoronoiNoise):
         arr = arr.reshape(size, size, 3)
         return arr
 
-    def edge3(self, size=256, cell=0.0, edge=1.0, t=None):
+    def noise3(self, size=256, cell=0.0, edge=1.0, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -107,7 +108,7 @@ class VoronoiEdges(VoronoiNoise):
         arr = arr.reshape(size, size)
         return arr
 
-    def edge3_color(self, size=256, edge=1.0, t=None):
+    def noise3_color(self, size=256, edge=1.0, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -126,9 +127,7 @@ class TileableVoronoiEdges(TileableVoronoiNoise, VoronoiEdges):
             grid (int): the number of vertical and horizontal grids.
     """
 
-    def voronoi_edge2(self, x, y):
-        p = np.array([x, y])
-        n = np.floor(p + 0.5)
+    def vnoise2_edge(self, p, n):
         dist = 2.0 ** 0.5
         grid = np.zeros(2)
         closest_cell = np.zeros(2)
@@ -144,6 +143,13 @@ class TileableVoronoiEdges(TileableVoronoiNoise, VoronoiEdges):
                 if (length := self.get_norm(to_cell)) <= dist:
                     dist = length
                     closest_cell[:] = to_cell[:]
+
+        return closest_cell
+
+    def voronoi_edge2(self, x, y):
+        p = np.array([x, y])
+        n = np.floor(p + 0.5)
+        closest_cell = self.vnoise2_edge(p, n)
 
         min_dist = 2.0 ** 0.5
         grid = np.zeros(2)
@@ -161,9 +167,7 @@ class TileableVoronoiEdges(TileableVoronoiNoise, VoronoiEdges):
 
         return min_dist
 
-    def voronoi_edge3(self, x, y, z):
-        p = np.array([x, y, z])
-        n = np.floor(p + 0.5)
+    def voronoi3_edge(self, p, n):
         dist = 3.0 ** 0.5
         grid = np.zeros(3)
         closest_cell = np.zeros(3)
@@ -182,6 +186,13 @@ class TileableVoronoiEdges(TileableVoronoiNoise, VoronoiEdges):
                     if (length := self.get_norm(to_cell)) < dist:
                         dist = length
                         closest_cell[:] = to_cell[:]
+
+        return closest_cell
+
+    def voronoi_edge3(self, x, y, z):
+        p = np.array([x, y, z])
+        n = np.floor(p + 0.5)
+        closest_cell = self.voronoi3_edge(p, n)
 
         min_dist = 3.0 ** 0.5
         grid = np.zeros(3)

@@ -3,9 +3,14 @@ import math
 import numpy as np
 
 from .edges import VoronoiEdges
+from .edges import TileableVoronoiEdges
 
 
 class VoronoiRoundEdges(VoronoiEdges):
+    """A class to generate voronoi round edges.
+        Args:
+            grid (int): the number of vertical and horizontal grids.
+    """
 
     def min_exp(self, a, b, tp):
         """The smaller the `tp`, the more rounded the voronoi corners.
@@ -73,50 +78,102 @@ class VoronoiRoundEdges(VoronoiEdges):
 
         return self.mix(edge, cell, a)
 
-    def round2(self, size=256, grid=4, cell=0.0, edge=1.0, tp=20, t=None):
+    def noise2(self, size=256, cell=0.0, edge=1.0, tp=20, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.vmix1(self.voronoi_round_edge2(x + t, y + t, tp), cell, edge)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size)
         return arr
 
-    def round2_color(self, size=256, grid=4, cell=1.0, edge=1.0, tp=40, t=None):
+    def noise2_color(self, size=256, cell=1.0, edge=1.0, tp=40, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.vmix2_round(x + t, y + t, cell, edge, tp)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size, 3)
         return arr
 
-    def round3(self, size=256, grid=4, cell=0.0, edge=1.0, tp=20, t=None):
+    def noise3(self, size=256, cell=0.0, edge=1.0, tp=20, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.vmix1(self.voronoi_round_edge3(x + t, y + t, t, tp), cell, edge)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size)
         return arr
 
-    def round3_color(self, size=256, grid=4, edge=1.0, tp=40, t=None):
+    def noise3_color(self, size=256, edge=1.0, tp=40, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.vmix3_round(x + t, y + t, t, edge, tp)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
 
         arr = arr.reshape(size, size, 3)
         return arr
+
+
+class TileableVoronoiRoundEdges(TileableVoronoiEdges, VoronoiRoundEdges):
+    """A class to generate tileable voronoi round edges.
+        Args:
+            grid (int): the number of vertical and horizontal grids.
+    """
+
+    def voronoi_round_edge2(self, x, y, tp=20):
+        p = np.array([x, y])
+        n = np.floor(p + 0.5)
+        closest_cell = self.vnoise2_edge(p, n)
+
+        min_dist = 2.0 ** 0.5
+        grid = np.zeros(2)
+
+        for j in range(-2, 3):
+            grid[1] = j + n[1]
+
+            for i in range(-2, 3):
+                grid[0] = i + n[0]
+                tiled_cell = self.modulo(grid, self.n_grid)
+                to_cell = grid + self.hash22(tiled_cell) - 0.5 - p
+
+                if self.get_norm(closest_cell - to_cell) > 0.0001:
+                    min_dist = self.min_exp(min_dist, np.dot(0.5 * (closest_cell + to_cell), self.normalize(to_cell - closest_cell)), tp)
+
+        return min_dist
+
+    def voronoi_round_edge3(self, x, y, z, tp=20):
+        p = np.array([x, y, z])
+        n = np.floor(p + 0.5)
+        closest_cell = self.voronoi3_edge(p, n)
+
+        min_dist = 3.0 ** 0.5
+        grid = np.zeros(3)
+
+        for k in range(-2, 3):
+            grid[2] = k + n[2]
+
+            for j in range(-2, 3):
+                grid[1] = j + n[1]
+
+                for i in range(-2, 3):
+                    grid[0] = i + n[0]
+                    tiled_cell = self.modulo(grid, self.n_grid)
+                    to_cell = grid + self.hash33(tiled_cell) - 0.5 - p
+
+                    if self.get_norm(closest_cell - to_cell) > 0.0001:
+                        min_dist = self.min_exp(min_dist, np.dot(0.5 * (closest_cell + to_cell), self.normalize(to_cell - closest_cell)), tp)
+
+        return min_dist
