@@ -5,7 +5,7 @@ try:
     from .cynoise.perlin import PerlinNoise, TileablePerlinNoise
     from .cynoise.simplex import SimplexNoise, TileableSimplexNoise
     from .cynoise.value import ValueNoise
-    from .cynoise.voronoi import VoronoiNoise, VoronoiEdges, VoronoiRoundEdges
+    from .cynoise.voronoi.voronoi import VoronoiNoise, TileableVoronoiNoise
     from .cynoise.warping import DomainWarping2D, DomainWarping3D
     print('Use cython code.')
 except ImportError:
