@@ -123,6 +123,7 @@ class CellularNoise(Noise):
                 for i in range(-1, 2):
                     x = n[0] + i
                     grid = np.array([x, y, z])
+
                     jitter = self.hash33(grid) - 0.5
                     length = self.get_norm(grid + jitter - p)
                     dist = min(dist, length)

@@ -28,21 +28,6 @@ cdef class VoronoiNoise(Noise):
 
     cpdef noise3_color(self, size=*, t=*)
 
-    #cpdef noise2(self, size=256, t=None)
-
-    #cpdef noise2_color(self, size=256, cell=1.0, t=None)
-
-    #cpdef noise3(self, size=256, t=None)
-
-    #cpdef noise3_color(self, size=256, t=None)
-
-
-cdef class TileableVoronoiNoise(VoronoiNoise):
-
-    cdef void _vnoise2(self, double x, double y, double[2] *lattice_pt)
-
-    cdef void _vnoise3(self, double x, double y, double z, double[3] *lattice_pt)
-
 
 
 

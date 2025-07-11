@@ -4,9 +4,7 @@ import cython
 import numpy as np
 from libc.math cimport floor, ceil, fmin, log, exp
 
-
-from .edges import VoronoiEdges
-# from .voronoi import TileableVoronoiNoise
+from .edges cimport VoronoiEdges
 
 
 cdef class VoronoiRoundEdges(VoronoiEdges):
@@ -125,7 +123,7 @@ cdef class VoronoiRoundEdges(VoronoiEdges):
 
         return m
     
-    cpdef round2(self, size=256, cell=0.0, edge=1.0, tp=20, t=None):
+    cpdef noise2(self, size=256, cell=0.0, edge=1.0, tp=20, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -137,7 +135,7 @@ cdef class VoronoiRoundEdges(VoronoiEdges):
         arr = arr.reshape(size, size)
         return arr
 
-    cpdef round2_color(self, size=256, cell=1.0, edge=1.0, tp=40, t=None):
+    cpdef noise2_color(self, size=256, cell=1.0, edge=1.0, tp=40, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -149,7 +147,7 @@ cdef class VoronoiRoundEdges(VoronoiEdges):
         arr = arr.reshape(size, size, 3)
         return arr
 
-    cpdef round3(self, size=256, self.n_grid, cell=0.0, edge=1.0, tp=20, t=None):
+    cpdef noise3(self, size=256, cell=0.0, edge=1.0, tp=20, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -161,7 +159,7 @@ cdef class VoronoiRoundEdges(VoronoiEdges):
         arr = arr.reshape(size, size)
         return arr
 
-    cpdef round3_color(self, size=256, edge=1.0, tp=40, t=None):
+    cpdef noise3_color(self, size=256, edge=1.0, tp=40, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
@@ -172,3 +170,99 @@ cdef class VoronoiRoundEdges(VoronoiEdges):
 
         arr = arr.reshape(size, size, 3)
         return arr
+
+
+cdef class TileableVoronoiRoundEdges(VoronoiRoundEdges):
+
+    cdef void _vnoise2(self, double x, double y, double[2] *lattice_pt):
+        cdef:
+            int i, j, ii
+            double nx, ny, length, v
+            double[2] grid, jitter, to_cell, tiled_cell
+            double[2] p = [x, y]
+            double dist = 2.0 ** 0.5
+
+        nx = floor(p[0] + 0.5)
+        ny = floor(p[1] + 0.5)
+
+        for j in range(-1, 2):
+            grid[1] = ny + <double>j
+
+            for i in range(-1, 2):
+                grid[0] = nx + <double>i
+                v = <double>self.n_grid
+                self.modulo21(&grid, &v, &tiled_cell)
+                self.hash22(&tiled_cell, &jitter)
+
+                for ii in range(2):
+                    to_cell[ii] = grid[ii] + jitter[ii] - 0.5 - p[ii]
+
+                length = self.get_norm2(&to_cell)
+
+                if length <= dist:
+                    dist = length
+
+                    for ii in range(2):
+                        lattice_pt[0][ii] = tiled_cell[ii] + jitter[ii]
+
+    cdef void _vnoise2_edge(self, double[2] *p, double[2] *n, double[2] *closest_cell):
+        cdef:
+            int i, j, ii
+            double length, v
+            double[2] grid, jitter, to_cell, tiled_cell
+            double dist = 2.0 ** 0.5
+
+        for j in range(-1, 2):
+            grid[1] = n[0][1] + <double>j
+
+            for i in range(-1, 2):
+                grid[0] = n[0][0] + <double>i
+                v = <double>self.n_grid
+                self.modulo21(&grid, &v, &tiled_cell)
+                self.hash22(&tiled_cell, &jitter)
+
+                for ii in range(2):
+                    to_cell[ii] = grid[ii] + jitter[ii] - 0.5 - p[0][ii]
+
+                length = self.get_norm2(&to_cell)
+
+                if length <= dist:
+                    dist = length
+                    closest_cell[0] = to_cell
+    
+    cdef double _voronoi_round_edge2(self, double x, double y, double tp):
+        cdef:
+            int i, j, ii
+            double v
+            double[2] grid, closest_cell, to_cell, tiled_cell, jitter, diff
+            double[2] n, a, b, nm
+            double[2] p = [x, y]
+            double min_dist = 2.0 ** 0.5
+
+        n[0] = floor(p[0] + 0.5)
+        n[1] = floor(p[1] + 0.5)
+        self._vnoise2_edge(&p, &n, &closest_cell)
+
+        for j in range(-2, 3):
+            grid[1] = n[1] + <double>j
+
+            for i in range(-2, 3):
+                grid[0] = n[0] + <double>i
+
+                v = <double>self.n_grid
+                self.modulo21(&grid, &v, &tiled_cell)
+                self.hash22(&tiled_cell, &jitter)
+
+                for ii in range(2):
+                    to_cell[ii] = grid[ii] + jitter[ii] - 0.5 - p[ii]
+                    diff[ii] = closest_cell[ii] - to_cell[ii]
+
+                if self.get_norm2(&diff) > 0.0001:
+                    for ii in range(2):
+                        a[ii] = (closest_cell[ii] + to_cell[ii]) * 0.5
+                        b[ii] = to_cell[ii] - closest_cell[ii]
+
+                    self.normalize2(&b, &nm)
+                    min_dist = self.min_exp(min_dist, self.inner_product22(&a, &nm), tp)
+
+        return min_dist    
