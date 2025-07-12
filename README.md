@@ -53,7 +53,8 @@ output_image_8bit(arr)
 output_image_16bit(arr)
 
 # change the number of lattices and the image size. The grid default is 4, size default is 256. 
-maker = PerlinNoise(size=512, grid=8)
+maker = PerlinNoise()
+arr = maker.noise3(size=512, grid=8)
 
 ```
 
