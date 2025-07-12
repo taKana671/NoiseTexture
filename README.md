@@ -2,7 +2,8 @@
 
 This repository contains python and cython codes that can generate noise images, which can be used for texture and heightmap to visualize the terrain in 3D. 
 In the python modules, numpy, and in the Cython modules, C array is mainly used. Those modules have the same functions, which return the array to be converted to an image.
-Their difference is speed. See [speed comparison](#speed-comparison) result below.  
+Their difference is speed. See [speed comparison](#speed-comparison) result below. 
+I am currently trying to generate tileable noise images. See [tileable](#tileable) for noise that has become tileable.
 </br>
 Also submodule of  
 * https://github.com/taKana671/TextureGenerator
@@ -251,7 +252,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiEdges.edge2</td>
+      <td>VoronoiEdges.noise2</td>
       <td>16.96586</td>
       <td>1</td>
       <td>7</td>
@@ -260,7 +261,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiEdges.edge3</td>
+      <td>VoronoiEdges.noise3</td>
       <td>83.08460</td>
       <td>1</td>
       <td>7</td>
@@ -269,7 +270,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiRoundEdges.round2</td>
+      <td>VoronoiRoundEdges.noise2</td>
       <td>18.23457</td>
       <td>1</td>
       <td>7</td>
@@ -278,7 +279,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <tr>
-      <td>VoronoiRoundEdges.round3</td>
+      <td>VoronoiRoundEdges.noise3</td>
       <td>84.45329</td>
       <td>1</td>
       <td>7</td>
@@ -391,6 +392,55 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
       <td>0.052569</td>
       <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+    <td>TileableVoronoiNoise.noise2</td>
+      <td>3.651836</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.136157</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <td>TileableVoronoiNoise.noise3</td>
+      <td>11.14920</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.286601</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <td>TileableVoronoiEdges.noise2</td>
+      <td>22.70371</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.316223</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <td>TileableVoronoiEdges.noise3</td>
+      <td>?</td>
+      <td>1</td>
+      <td>7</td>
+      <td>1.719043</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <td>TileableVoronoiRoundEdges.noise2</td>
+      <td>?</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.356037</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <td>TileableVoronoiRoundEdges.noise3</td>
+      <td>?</td>
+      <td>1</td>
+      <td>7</td>
+      <td>1.994004</td>
+      <td>1</td>
       <td>7</td>
     </tr>
 </table>
