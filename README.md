@@ -2,8 +2,9 @@
 
 This repository contains python and cython codes that can generate noise images, which can be used for texture and heightmap to visualize the terrain in 3D. 
 In the python modules, numpy, and in the Cython modules, C array is mainly used. Those modules have the same functions, which return the array to be converted to an image.
-Their difference is speed. See [speed comparison](#speed-comparison) result below. 
+Their difference is speed. See [speed comparison](#speed-comparison) result below.  
 I am currently trying to generate tileable noise images. See [tileable](#tileable) for noise that has become tileable.
+</br>
 </br>
 Also submodule of  
 * https://github.com/taKana671/TextureGenerator
@@ -75,8 +76,8 @@ For more details of methods and parameters, please see source codes.
 
 ***
 #### Voronoi Noise
-![Image](https://github.com/user-attachments/assets/734c4001-343c-428d-bf91-da0b87f4de9c)
-![Image](https://github.com/user-attachments/assets/e42f3977-594c-49be-9daa-07ada321cac1)
+![Image](https://github.com/user-attachments/assets/049c83e9-410f-4fb7-b10e-9f4d5d44fba5)
+![Image](https://github.com/user-attachments/assets/4d29f930-662e-4e55-809e-32fcc82c93b0)
 
 ***
 #### Simplex Noise
@@ -89,6 +90,8 @@ For more details of methods and parameters, please see source codes.
 ***
 #### Tileable
 ![Image](https://github.com/user-attachments/assets/ce5abe2d-c37c-4013-81f6-afdadac39b5b)
+![Image](https://github.com/user-attachments/assets/ba7e60f3-303e-4f04-a136-9d81e32d2207)
+![Image](https://github.com/user-attachments/assets/1965276a-e06d-457e-a6c6-9a87cd6dc04f)
 
 
 # Speed ​​comparison
@@ -420,7 +423,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <td>TileableVoronoiEdges.noise3</td>
-      <td>?</td>
+      <td>110.0342</td>
       <td>1</td>
       <td>7</td>
       <td>1.719043</td>
@@ -428,7 +431,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <td>TileableVoronoiRoundEdges.noise2</td>
-      <td>?</td>
+      <td>23.40995</td>
       <td>1</td>
       <td>7</td>
       <td>0.356037</td>
@@ -436,7 +439,7 @@ print(result.best, result.loops, result.repeat)
       <td>7</td>
     </tr>
     <td>TileableVoronoiRoundEdges.noise3</td>
-      <td>?</td>
+      <td>116.0966</td>
       <td>1</td>
       <td>7</td>
       <td>1.994004</td>
