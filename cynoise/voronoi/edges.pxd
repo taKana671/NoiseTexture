@@ -1,5 +1,3 @@
-# cython: language_level=3
-
 from .voronoi cimport VoronoiNoise
 
 

@@ -16,9 +16,9 @@ except ImportError:
     from .pynoise.periodic import PeriodicNoise
     from .pynoise.perlin import PerlinNoise, TileablePerlinNoise
     from .pynoise.simplex import SimplexNoise, TileableSimplexNoise
-    from .pynoise.warping import DomainWarping2D, DomainWarping3D
+    from .pynoise.value import ValueNoise
     from .pynoise.voronoi.voronoi import VoronoiNoise, TileableVoronoiNoise
     from .pynoise.voronoi.edges import VoronoiEdges, TileableVoronoiEdges
     from .pynoise.voronoi.rounded_edges import VoronoiRoundEdges, TileableVoronoiRoundEdges
-    from .pynoise.value import ValueNoise
+    from .pynoise.warping import DomainWarping2D, DomainWarping3D
     print('Use python code.')

@@ -36,7 +36,8 @@ class VoronoiRoundEdges(VoronoiEdges):
                 b = grid + self.hash22(grid) - 0.5 - p
 
                 if np.dot(a - b, a - b) > 0.0001:
-                    md = self.min_exp(md, np.dot(0.5 * (a + b), self.normalize(b - a)), tp)
+                    md = self.min_exp(md, np.dot(
+                        0.5 * (a + b), self.normalize(b - a)), tp)
 
         return md
 
@@ -60,7 +61,8 @@ class VoronoiRoundEdges(VoronoiEdges):
                     b = grid + self.hash33(grid) - 0.5 - p
 
                     if np.dot(a - b, a - b) > 0.0001:
-                        md = self.min_exp(md, np.dot(0.5 * (a + b), self.normalize(b - a)), tp)
+                        md = self.min_exp(md, np.dot(
+                            0.5 * (a + b), self.normalize(b - a)), tp)
 
         return md
 
@@ -150,7 +152,8 @@ class TileableVoronoiRoundEdges(TileableVoronoiEdges, VoronoiRoundEdges):
                 to_cell = grid + self.hash22(tiled_cell) - 0.5 - p
 
                 if self.get_norm(closest_cell - to_cell) > 0.0001:
-                    min_dist = self.min_exp(min_dist, np.dot(0.5 * (closest_cell + to_cell), self.normalize(to_cell - closest_cell)), tp)
+                    min_dist = self.min_exp(min_dist, np.dot(
+                        0.5 * (closest_cell + to_cell), self.normalize(to_cell - closest_cell)), tp)
 
         return min_dist
 
@@ -174,6 +177,7 @@ class TileableVoronoiRoundEdges(TileableVoronoiEdges, VoronoiRoundEdges):
                     to_cell = grid + self.hash33(tiled_cell) - 0.5 - p
 
                     if self.get_norm(closest_cell - to_cell) > 0.0001:
-                        min_dist = self.min_exp(min_dist, np.dot(0.5 * (closest_cell + to_cell), self.normalize(to_cell - closest_cell)), tp)
+                        min_dist = self.min_exp(min_dist, np.dot(
+                            0.5 * (closest_cell + to_cell), self.normalize(to_cell - closest_cell)), tp)
 
         return min_dist

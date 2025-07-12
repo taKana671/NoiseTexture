@@ -1,8 +1,6 @@
-# cython: language_level=3
-
 import cython
 import numpy as np
-from libc.math cimport floor, ceil, fmin, log, exp
+from libc.math cimport floor, log, exp
 
 from .edges cimport VoronoiEdges
 
@@ -265,4 +263,109 @@ cdef class TileableVoronoiRoundEdges(VoronoiRoundEdges):
                     self.normalize2(&b, &nm)
                     min_dist = self.min_exp(min_dist, self.inner_product22(&a, &nm), tp)
 
-        return min_dist    
+        return min_dist
+    
+
+    cdef void _vnoise3(self, double x, double y, double z, double[3] *lattice_pt):
+        cdef:
+            int i, j, k, ii
+            double nx, ny, nz, length, v
+            double[3] grid, jitter, tiled_cell, to_cell
+            double[3] p = [x, y, z]
+            double dist = 3.0 ** 0.5
+
+        nx = floor(p[0] + 0.5)
+        ny = floor(p[1] + 0.5)
+        nz = floor(p[2] + 0.5)
+
+        for k in range(-1, 2):
+            grid[2] = nz + <double>k
+
+            for j in range(-1, 2):
+                grid[1] = ny + <double>j
+
+                for i in range(-1, 2):
+                    grid[0] = nx + <double>i
+                    v = <double>self.n_grid
+                    self.modulo31(&grid, &v, &tiled_cell)
+                    self.hash33(&tiled_cell, &jitter)
+
+                    for ii in range(3):
+                        to_cell[ii] = grid[ii] + jitter[ii] - 0.5 - p[ii]
+
+                    length = self.get_norm3(&to_cell)
+
+                    if length <= dist:
+                        dist = length
+
+                        for ii in range(3):
+                            lattice_pt[0][ii] = tiled_cell[ii] + jitter[ii]
+    
+    cdef void _vnoise3_edge(self, double[3] *p, double[3] *n, double[3] *closest_cell):
+        cdef:
+            int i, j, k, ii
+            double length, v
+            double[3] grid, jitter, to_cell, tiled_cell
+            double dist = 3.0 ** 0.5
+
+        for k in range(-1, 2):
+            grid[2] = n[0][2] + <double>k
+
+            for j in range(-1, 2):
+                grid[1] = n[0][1] + <double>j
+
+                for i in range(-1, 2):
+                    grid[0] = n[0][0] + <double>i
+                    v = <double>self.n_grid
+                    self.modulo31(&grid, &v, &tiled_cell)
+                    self.hash33(&tiled_cell, &jitter)
+
+                    for ii in range(3):
+                        to_cell[ii] = grid[ii] + jitter[ii] - 0.5 - p[0][ii]
+
+                    length = self.get_norm3(&to_cell)
+
+                    if length <= dist:
+                        dist = length
+                        closest_cell[0] = to_cell
+    
+    cdef double _voronoi_round_edge3(self, double x, double y, double z, double tp):
+        cdef:
+            int i, j, k, ii
+            double v
+            double[3] grid, closest_cell, to_cell, tiled_cell, jitter, diff
+            double[3] n, a, b, nm
+            double[3] p = [x, y, z]
+            double min_dist = 3.0 ** 0.5
+
+        for ii in range(3):
+            n[ii] = floor(p[ii] + 0.5)
+        
+        self._vnoise3_edge(&p, &n, &closest_cell)
+
+        for k in range(-2, 3):
+            grid[2] = n[2] + <double>k
+
+            for j in range(-2, 3):
+                grid[1] = n[1] + <double>j
+
+                for i in range(-2, 3):
+                    grid[0] = n[0] + <double>i
+
+                    v = <double>self.n_grid
+                    self.modulo31(&grid, &v, &tiled_cell)
+                    self.hash33(&tiled_cell, &jitter)
+
+                    for ii in range(3):
+                        to_cell[ii] = grid[ii] + jitter[ii] - 0.5 - p[ii]
+                        diff[ii] = closest_cell[ii] - to_cell[ii]
+
+                    if self.get_norm3(&diff) > 0.0001:
+                        for ii in range(3):
+                            a[ii] = (closest_cell[ii] + to_cell[ii]) * 0.5
+                            b[ii] = to_cell[ii] - closest_cell[ii]
+
+                        self.normalize3(&b, &nm)
+                        min_dist = self.min_exp(min_dist, self.inner_product33(&a, &nm), tp)
+
+        return min_dist
