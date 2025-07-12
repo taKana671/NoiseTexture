@@ -1,5 +1,3 @@
-# cython: language_level=3
-
 
 cdef class Noise:
 
@@ -65,3 +63,7 @@ cdef class Noise:
     cdef void normalize3(self, double[3] *p, double[3] *nm)
 
     cdef void mix3(self, double[3] *x, double[3] *y, double a, double[3] *m)
+
+    cdef void modulo21(self, double[2] *divident, double *divisor, double[2] *m)
+
+    cdef void modulo31(self, double[3] *divident, double *divisor, double[3] *m)

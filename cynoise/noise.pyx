@@ -1,10 +1,8 @@
-# cython: language_level=3
-
 import random
 
 import cython
 # cimport numpy as np
-import numpy as np
+# import numpy as np
 from libc.math cimport atan2, cos, sin, pi, floor, fmax, fmin
 
 
@@ -352,3 +350,22 @@ cdef class Noise:
 
         for i in range(3):
             nm[0][i] = p[0][i] / norm
+
+    cdef void modulo21(self, double[2] *divident, double *divisor, double[2] *m):
+        cdef:
+            double d
+            unsigned int i
+
+        for i in range(2):
+            d = self.mod(divident[0][i], divisor[0]) + divisor[0]
+            m[0][i] = self.mod(d, divisor[0])
+
+    cdef void modulo31(self, double[3] *divident, double *divisor, double[3] *m):
+        cdef:
+            double d
+            unsigned int i
+
+        for i in range(3):
+            d = self.mod(divident[0][i], divisor[0]) + divisor[0]
+            m[0][i] = self.mod(d, divisor[0])
+

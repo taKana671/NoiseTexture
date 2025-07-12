@@ -1,5 +1,3 @@
-# cython: language_level=3
-
 import cython
 import numpy as np
 from libc.math cimport floor
