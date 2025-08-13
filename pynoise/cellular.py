@@ -19,25 +19,25 @@ class CellularNoise(Noise):
         if self.step(length, dist4[3]):
             return np.array([*dist4[:3], length])
 
-    def fdist24(self, px, py):
+    def fdist24(self, x, y):
         """Compute the 1st, 2nd, 3rd and 4th 2D nearest neighbor distance.
             Args:
                 px, py (float)
         """
-        p = np.array([px, py])
+        p = np.array([x, y])
         n = np.floor(p + 0.5)
         temp = 1.5 - np.abs(p - n)
         length = sum(v ** 2 for v in temp) ** 0.5
         dist4 = np.full(4, length)
+        grid = np.zeros(2)
 
         for j in range(5):
-            y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
-            if abs(y - p[1]) - 0.5 > dist4[3]:
+            grid[1] = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+            if abs(grid[1] - p[1]) - 0.5 > dist4[3]:
                 continue
 
             for i in range(-2, 3):
-                x = n[0] + i
-                grid = np.array([x, y])
+                grid[0] = n[0] + i
                 jitter = self.hash22(grid) - 0.5
                 length = self.get_norm(grid + jitter - p)
 
@@ -46,30 +46,30 @@ class CellularNoise(Noise):
 
         return dist4
 
-    def fdist34(self, px, py, pz):
+    def fdist34(self, x, y, z):
         """Compute the 1st, 2nd, 3rd and 4th 3D nearest neighbor distance.
             Args:
                 px, py, pz (float)
         """
-        p = np.array([px, py, pz])
+        p = np.array([x, y, z])
         n = np.floor(p + 0.5)
         temp = 1.5 - np.abs(p - n)
         length = sum(v ** 2 for v in temp) ** 0.5
         dist4 = np.full(4, length)
+        grid = np.zeros(3)
 
         for k in range(5):
-            z = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
-            if abs(z - p[2]) - 0.5 > dist4[3]:
+            grid[2] = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
+            if abs(grid[2] - p[2]) - 0.5 > dist4[3]:
                 continue
 
             for j in range(5):
-                y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
-                if abs(y - p[1]) - 0.5 > dist4[3]:
+                grid[1] = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+                if abs(grid[1] - p[1]) - 0.5 > dist4[3]:
                     continue
 
                 for i in range(-2, 3):
-                    x = n[0] + i
-                    grid = np.array([x, y, z])
+                    grid[0] = n[0] + i
                     jitter = self.hash33(grid) - 0.5
                     length = self.get_norm(grid + jitter - p)
 
@@ -78,52 +78,51 @@ class CellularNoise(Noise):
 
         return dist4
 
-    def fdist2(self, px, py):
+    def fdist2(self, x, y):
         """Compute 2D nearest neighbor distance.
             Args:
                 px, py (float)
         """
-        p = np.array([px, py])
+        p = np.array([x, y])
         n = np.floor(p + 0.5)
         dist = 2.0 ** 0.5
+        grid = np.zeros(2)
 
         for j in range(3):
-            y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
-            if abs(y - p[1]) - 0.5 > dist:
+            grid[1] = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+            if abs(grid[1] - p[1]) - 0.5 > dist:
                 continue
 
             for i in range(-1, 2):
-                x = n[0] + i
-                grid = np.array([x, y])
+                grid[0] = n[0] + i
                 jitter = self.hash22(grid) - 0.5
                 length = self.get_norm(grid + jitter - p)
                 dist = min(dist, length)
 
         return dist
 
-    def fdist3(self, px, py, pz):
+    def fdist3(self, x, y, z):
         """Compute 3D nearest neighbor distance.
             Args:
                 px, py, pz (float)
         """
-        p = np.array([px, py, pz])
+        p = np.array([x, y, z])
         n = np.floor(p + 0.5)
         dist = 3.0 ** 0.5
+        grid = np.zeros(3)
 
         for k in range(3):
-            z = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
-            if abs(z - p[2]) - 0.5 > dist:
+            grid[2] = n[2] + np.sign(k % 2 - .5) * np.ceil(k * .5)
+            if abs(grid[2] - p[2]) - 0.5 > dist:
                 continue
 
             for j in range(3):
-                y = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
-                if abs(y - p[1]) - 0.5 > dist:
+                grid[1] = n[1] + np.sign(j % 2 - .5) * np.ceil(j * .5)
+                if abs(grid[1] - p[1]) - 0.5 > dist:
                     continue
 
                 for i in range(-1, 2):
-                    x = n[0] + i
-                    grid = np.array([x, y, z])
-
+                    grid[0] = n[0] + i
                     jitter = self.hash33(grid) - 0.5
                     length = self.get_norm(grid + jitter - p)
                     dist = min(dist, length)
@@ -153,7 +152,7 @@ class CellularNoise(Noise):
         return arr
 
     def noise24(self, size=256, grid=4, nearest=2, t=None):
-        """Return numpy.ndarray to be convert an 2D image.
+        """Return numpy.ndarray to be convert an image.
             Args:
                 nearest (int):
                     the order of nearest neighbor distance;
@@ -192,3 +191,109 @@ class CellularNoise(Noise):
         )
         arr = arr.reshape(size, size)
         return arr
+
+
+class TileableCellularNoise(CellularNoise):
+
+    def fdist2(self, x, y):
+        """Compute 2D nearest neighbor distance.
+            Args:
+                px, py (float)
+        """
+        p = np.array([x, y])
+        n = np.floor(p + 0.5)
+        dist = 2.0 ** 0.5
+        grid = np.zeros(2)
+
+        for j in range(-1, 2):
+            grid[1] = n[1] + j
+
+            for i in range(-1, 2):
+                grid[0] = n[0] + i
+                tiled_cell = self.modulo(grid, 4)
+                jitter = self.hash22(tiled_cell)
+                length = self.get_norm(grid + jitter - p - 0.5)
+                dist = min(dist, length)
+
+        return dist
+
+    def fdist3(self, x, y, z):
+        """Compute 3D nearest neighbor distance.
+            Args:
+                px, py, pz (float)
+        """
+        p = np.array([x, y, z])
+        n = np.floor(p + 0.5)
+        dist = 3.0 ** 0.5
+        grid = np.zeros(3)
+
+        for k in range(-1, 2):
+            grid[2] = k + n[2]
+
+            for j in range(-1, 2):
+                grid[1] = j + n[1]
+
+                for i in range(-1, 2):
+                    grid[0] = i + n[0]
+                    tiled_cell = self.modulo(grid, 4)
+                    jitter = self.hash33(tiled_cell)
+                    length = self.get_norm(grid + jitter - p - 0.5)
+                    dist = min(dist, length)
+
+        return dist
+
+    def fdist24(self, x, y):
+        """Compute the 1st, 2nd, 3rd and 4th 2D nearest neighbor distance.
+            Args:
+                px, py (float)
+        """
+        p = np.array([x, y])
+        n = np.floor(p + 0.5)
+        temp = 1.5 - np.abs(p - n)
+        length = sum(v ** 2 for v in temp) ** 0.5
+        dist4 = np.full(4, length)
+        grid = np.zeros(2)
+
+        for j in range(-2, 3):
+            grid[1] = n[1] + j
+
+            for i in range(-2, 3):
+                grid[0] = n[0] + i
+                tiled_cell = self.modulo(grid, 4)
+                jitter = self.hash22(tiled_cell)
+                length = self.get_norm(grid + jitter - p - 0.5)
+
+                if (sorted_dist4 := self.sort4(dist4, length)) is not None:
+                    dist4 = sorted_dist4
+
+        return dist4
+
+    def fdist34(self, x, y, z):
+        """Compute the 1st, 2nd, 3rd and 4th 3D nearest neighbor distance.
+            Args:
+                px, py, pz (float)
+        """
+        p = np.array([x, y, z])
+        n = np.floor(p + 0.5)
+        temp = 1.5 - np.abs(p - n)
+        length = sum(v ** 2 for v in temp) ** 0.5
+        dist4 = np.full(4, length)
+        grid = np.zeros(3)
+
+        for k in range(-2, 3):
+            grid[2] = k + n[2]
+
+            for j in range(-2, 3):
+                grid[1] = j + n[1]
+
+                for i in range(-2, 3):
+                    grid[0] = i + n[0]
+
+                    tiled_cell = self.modulo(grid, 4)
+                    jitter = self.hash33(tiled_cell)
+                    length = self.get_norm(grid + jitter - p - 0.5)
+
+                    if (sorted_dist4 := self.sort4(dist4, length)) is not None:
+                        dist4 = sorted_dist4
+
+        return dist4
