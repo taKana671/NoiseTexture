@@ -5,6 +5,9 @@ from .noise import Noise
 
 class CellularNoise(Noise):
 
+    def __init__(self, grid=4):
+        self.n_grid = grid
+
     def sort4(self, dist4, length):
 
         if self.step(length, dist4[0]):
@@ -129,29 +132,29 @@ class CellularNoise(Noise):
 
         return dist
 
-    def noise2(self, size=256, grid=4, t=None):
+    def noise2(self, size=256, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.fdist2(x + t, y + t)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
         arr = arr.reshape(size, size)
         return arr
 
-    def noise3(self, size=256, grid=4, t=None):
+    def noise3(self, size=256, t=None):
         t = self.mock_time() if t is None else t
 
         arr = np.array(
             [self.fdist3(x + t, y + t, t)
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
         arr = arr.reshape(size, size)
         return arr
 
-    def noise24(self, size=256, grid=4, nearest=2, t=None):
+    def noise24(self, size=256, nearest=2, t=None):
         """Return numpy.ndarray to be convert an image.
             Args:
                 nearest (int):
@@ -162,32 +165,32 @@ class CellularNoise(Noise):
 
         arr = np.array(
             [self.fdist24(x + t, y + t)[nearest - 1]
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
         arr = arr.reshape(size, size)
         return arr
 
-    def cnoise2(self, size=256, grid=4, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
+    def cnoise2(self, size=256, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
         t = self.mock_time() if t is None else t
         wt = np.array([wx, wy, wz, ww])
 
         arr = np.array(
             [abs(np.dot(wt, self.fdist24(x + t, y + t)))
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
         arr = arr.reshape(size, size)
         return arr
 
-    def cnoise3(self, size=256, grid=4, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
+    def cnoise3(self, size=256, wx=0.5, wy=-1.0, wz=1.4, ww=-0.1, t=None):
         t = self.mock_time() if t is None else t
         wt = np.array([wx, wy, wz, ww])
 
         arr = np.array(
             [abs(np.dot(wt, self.fdist34(x + t, y + t, t)))
-                for y in np.linspace(0, grid, size)
-                for x in np.linspace(0, grid, size)]
+                for y in np.linspace(0, self.n_grid, size)
+                for x in np.linspace(0, self.n_grid, size)]
         )
         arr = arr.reshape(size, size)
         return arr
@@ -210,7 +213,7 @@ class TileableCellularNoise(CellularNoise):
 
             for i in range(-1, 2):
                 grid[0] = n[0] + i
-                tiled_cell = self.modulo(grid, 4)
+                tiled_cell = self.modulo(grid, self.n_grid)
                 jitter = self.hash22(tiled_cell)
                 length = self.get_norm(grid + jitter - p - 0.5)
                 dist = min(dist, length)
@@ -235,7 +238,7 @@ class TileableCellularNoise(CellularNoise):
 
                 for i in range(-1, 2):
                     grid[0] = i + n[0]
-                    tiled_cell = self.modulo(grid, 4)
+                    tiled_cell = self.modulo(grid, self.n_grid)
                     jitter = self.hash33(tiled_cell)
                     length = self.get_norm(grid + jitter - p - 0.5)
                     dist = min(dist, length)
@@ -259,7 +262,7 @@ class TileableCellularNoise(CellularNoise):
 
             for i in range(-2, 3):
                 grid[0] = n[0] + i
-                tiled_cell = self.modulo(grid, 4)
+                tiled_cell = self.modulo(grid, self.n_grid)
                 jitter = self.hash22(tiled_cell)
                 length = self.get_norm(grid + jitter - p - 0.5)
 
@@ -289,7 +292,7 @@ class TileableCellularNoise(CellularNoise):
                 for i in range(-2, 3):
                     grid[0] = i + n[0]
 
-                    tiled_cell = self.modulo(grid, 4)
+                    tiled_cell = self.modulo(grid, self.n_grid)
                     jitter = self.hash33(tiled_cell)
                     length = self.get_norm(grid + jitter - p - 0.5)
 

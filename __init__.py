@@ -1,5 +1,5 @@
 try:
-    from .cynoise.cellular import CellularNoise
+    from .cynoise.cellular import CellularNoise, TileableCellularNoise
     from .cynoise.fBm import Fractal2D, Fractal3D
     from .cynoise.periodic import PeriodicNoise
     from .cynoise.perlin import PerlinNoise, TileablePerlinNoise
@@ -11,7 +11,7 @@ try:
     from .cynoise.warping import DomainWarping2D, DomainWarping3D
     print('Use cython code.')
 except ImportError:
-    from .pynoise.cellular import CellularNoise
+    from .pynoise.cellular import CellularNoise, TileableCellularNoise
     from .pynoise.fBm import Fractal2D, Fractal3D
     from .pynoise.periodic import PeriodicNoise
     from .pynoise.perlin import PerlinNoise, TileablePerlinNoise
