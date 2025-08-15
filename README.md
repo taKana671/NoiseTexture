@@ -93,7 +93,7 @@ For more details of methods and parameters, please see source codes.
 ![Image](https://github.com/user-attachments/assets/ce5abe2d-c37c-4013-81f6-afdadac39b5b)
 ![Image](https://github.com/user-attachments/assets/ba7e60f3-303e-4f04-a136-9d81e32d2207)
 ![Image](https://github.com/user-attachments/assets/1965276a-e06d-457e-a6c6-9a87cd6dc04f)
-
+![Image](https://github.com/user-attachments/assets/a7a04a98-4da4-4dc6-9629-6c07a956f008)
 
 # Speed ​​comparison
 
@@ -407,6 +407,7 @@ print(result.best, result.loops, result.repeat)
       <td>10</td>
       <td>7</td>
     </tr>
+    <tr>
     <td>TileableVoronoiNoise.noise3</td>
       <td>11.14920</td>
       <td>1</td>
@@ -415,7 +416,8 @@ print(result.best, result.loops, result.repeat)
       <td>1</td>
       <td>7</td>
     </tr>
-    <td>TileableVoronoiEdges.noise2</td>
+    <tr>
+      <td>TileableVoronoiEdges.noise2</td>
       <td>22.70371</td>
       <td>1</td>
       <td>7</td>
@@ -423,7 +425,8 @@ print(result.best, result.loops, result.repeat)
       <td>1</td>
       <td>7</td>
     </tr>
-    <td>TileableVoronoiEdges.noise3</td>
+    <tr>
+      <td>TileableVoronoiEdges.noise3</td>
       <td>110.0342</td>
       <td>1</td>
       <td>7</td>
@@ -431,7 +434,8 @@ print(result.best, result.loops, result.repeat)
       <td>1</td>
       <td>7</td>
     </tr>
-    <td>TileableVoronoiRoundEdges.noise2</td>
+    <tr>
+      <td>TileableVoronoiRoundEdges.noise2</td>
       <td>23.40995</td>
       <td>1</td>
       <td>7</td>
@@ -439,11 +443,57 @@ print(result.best, result.loops, result.repeat)
       <td>1</td>
       <td>7</td>
     </tr>
-    <td>TileableVoronoiRoundEdges.noise3</td>
+    <tr>
+      <td>TileableVoronoiRoundEdges.noise3</td>
       <td>116.0966</td>
       <td>1</td>
       <td>7</td>
       <td>1.994004</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>TileableCellularNoise.noise2</td>
+      <td>3.537918</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.069321</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>TileableCellularNoise.noise3</td>
+      <td>11.11327</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.214100</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>TileableCellularNoise.noise24</td>
+      <td>10.93445</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.189020</td>
+      <td>10</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>TileableCellularNoise.cnoise2</td>
+      <td>11.10220</td>
+      <td>1</td>
+      <td>7</td>
+      <td>0.241810</td>
+      <td>1</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <td>TileableCellularNoise.cnoise3</td>
+      <td>55.26495</td>
+      <td>1</td>
+      <td>7</td>
+      <td>1.097887</td>
       <td>1</td>
       <td>7</td>
     </tr>
