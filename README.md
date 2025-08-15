@@ -9,6 +9,7 @@ I am currently trying to generate tileable noise images. See [tileable](#tileabl
 Also submodule of  
 * https://github.com/taKana671/TextureGenerator
 * https://github.com/taKana671/ParticleText
+* https://github.com/taKana671/TerracedTerrain
 
 # Requirements
 
