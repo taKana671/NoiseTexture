@@ -9,6 +9,34 @@ class Fractal:
         self.amplitude = amplitude
         self.frequency = frequency
 
+    def noise_octaves(self, *components):
+        """Apply multiple passes of noise algorithm, each one with a higher frequency
+           than the previous one, but with a lower “strength”.
+        """
+        v = 0.0
+        amp = self.amplitude
+        freq = self.frequency
+
+        for _ in range(self.octaves):
+            noise = self.noise(*[comp * freq for comp in components])
+            v += amp * noise
+            freq *= self.lacunarity
+            amp *= self.gain
+
+        return v
+
+    def fractal(self, *components):
+        v = 0.0
+        amp = self.amplitude     # amplitude: the highest deviation of the wave from its central or zero position
+        freq = self.frequency    # frequency: the number of waves that pass a fixed point in unit time
+
+        for _ in range(self.octaves):
+            v += amp * (self.noise(*[freq * comp for comp in components]) - 0.5)
+            amp *= self.gain
+            freq *= self.lacunarity
+
+        return 0.5 * v + 0.5
+
 
 class Fractal2D(Fractal):
 
@@ -18,32 +46,10 @@ class Fractal2D(Fractal):
         self.noise = noise_gen
 
     def fractal(self, x, y):
-        v = 0.0
-        amp = self.amplitude     # amplitude: the highest deviation of the wave from its central or zero position
-        freq = self.frequency    # frequency: the number of waves that pass a fixed point in unit time
-
-        for _ in range(self.octaves):
-            v += amp * (self.noise(freq * x, freq * y) - 0.5)
-            amp *= self.gain
-            freq *= self.lacunarity
-
-        return 0.5 * v + 0.5
+        return super().fractal(x, y)
 
     def noise_octaves(self, x, y):
-        """Apply multiple passes of noise algorithm, each one with a higher frequency
-           than the previous one, but with a lower “strength”.
-        """
-        v = 0.0
-        amp = self.amplitude
-        freq = self.frequency
-
-        for _ in range(self.octaves):
-            noise = self.noise(freq * x, freq * y)
-            v += amp * noise
-            freq *= self.lacunarity
-            amp *= self.gain
-
-        return v
+        return super().noise_octaves(x, y)
 
 
 class Fractal3D(Fractal):
@@ -54,29 +60,7 @@ class Fractal3D(Fractal):
         self.noise = noise_gen
 
     def fractal(self, x, y, z):
-        v = 0.0
-        amp = self.amplitude    # amplitude: the highest deviation of the wave from its central or zero position
-        freq = self.frequency   # frequency: the number of waves that pass a fixed point in unit time
-
-        for _ in range(self.octaves):
-            v += amp * (self.noise(freq * x, freq * y, freq * z) - 0.5)
-            amp *= self.gain
-            freq *= self.lacunarity
-
-        return 0.5 * v + 0.5
+        return super().fractal(x, y, z)
 
     def noise_octaves(self, x, y, z):
-        """Apply multiple passes of noise algorithm, each one with a higher frequency
-           than the previous one, but with a lower “strength”.
-        """
-        v = 0.0
-        amp = self.amplitude
-        freq = self.frequency
-
-        for _ in range(self.octaves):
-            noise = self.noise(freq * x, freq * y, freq * z)
-            v += amp * noise
-            freq *= self.lacunarity
-            amp *= self.gain
-
-        return v
+        return super().noise_octaves(x, y, z)
