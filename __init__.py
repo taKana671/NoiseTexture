@@ -9,6 +9,7 @@ try:
     from .cynoise.voronoi.edges import VoronoiEdges, TileableVoronoiEdges
     from .cynoise.voronoi.rounded_edges import VoronoiRoundEdges, TileableVoronoiRoundEdges
     from .cynoise.warping import DomainWarping2D, DomainWarping3D
+    from .cynoise.curl import PerlinCurlNoise3D, SimplexCurlNoise3D, PerlinCurlNoise2D
     print('Use cython code.')
 except ImportError:
     from .pynoise.cellular import CellularNoise, TileableCellularNoise
@@ -21,4 +22,5 @@ except ImportError:
     from .pynoise.voronoi.edges import VoronoiEdges, TileableVoronoiEdges
     from .pynoise.voronoi.rounded_edges import VoronoiRoundEdges, TileableVoronoiRoundEdges
     from .pynoise.warping import DomainWarping2D, DomainWarping3D
+    from .pynoise.curl import PerlinCurlNoise3D, SimplexCurlNoise3D, PerlinCurlNoise2D
     print('Use python code.')
