@@ -26,8 +26,11 @@ cdef class PerlinCurlNoise3D(PerlinNoise):
             raise MemoryError('The length of offset_* must be 3.')
 
         for i in range(2):
-            offset_arr_1[i] = <double>offset_1[i]
-            offset_arr_2[i] = <double>offset_2[i]
+            if isinstance(offset_1[i], (float, int)):
+                offset_arr_1[i] = <double>offset_1[i]
+
+            if isinstance(offset_2[i], (float, int)):    
+                offset_arr_2[i] = <double>offset_2[i]
         
         self.off_1 = &offset_arr_1
         self.off_2 = &offset_arr_2
@@ -83,8 +86,11 @@ cdef class SimplexCurlNoise3D(SimplexNoise):
             raise MemoryError('The length of offset_* must be 3.')
 
         for i in range(2):
-            offset_arr_1[i] = <double>offset_1[i]
-            offset_arr_2[i] = <double>offset_2[i]
+            if isinstance(offset_1[i], (float, int)):
+                offset_arr_1[i] = <double>offset_1[i]
+
+            if isinstance(offset_2[i], (float, int)):    
+                offset_arr_2[i] = <double>offset_2[i]
         
         self.off_1 = &offset_arr_1
         self.off_2 = &offset_arr_2
