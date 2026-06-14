@@ -96,6 +96,10 @@ For more details of methods and parameters, please see source codes.
 ![Image](https://github.com/user-attachments/assets/1965276a-e06d-457e-a6c6-9a87cd6dc04f)
 ![Image](https://github.com/user-attachments/assets/a7a04a98-4da4-4dc6-9629-6c07a956f008)
 
+***
+#### Curl Noise
+See https://github.com/taKana671/FluidCube
+
 # Speed ​​comparison
 
 The execution time of each methods were measured like below.
